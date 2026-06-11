@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>MateoMarkets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Spline+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1d1f23;
+    --card: #25272d;
+    --card-hover: #292b32;
+    --line: #34363e;
+    --line-strong: #45474f;
+    --ink: #e9e7e2;
+    --muted: #a2a4ab;
+    --faint: #6e7077;
+    --accent: #9a8cf5;
+    --accent-strong: #7263e8;
+    --accent-hover: #8577ee;
+    --accent-tint: rgba(154, 140, 245, 0.12);
+    --yes: #3bbd8d;
+    --yes-tint: rgba(59, 189, 141, 0.14);
+    --no: #e2754e;
+    --no-tint: rgba(226, 117, 78, 0.14);
+    --serif: "Instrument Serif", Georgia, serif;
+    --sans: "Spline Sans", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  ::selection { background: var(--accent); color: #16171a; }
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.55;
+    padding: 32px 16px 60px;
+  }
+  .wrap { max-width: 700px; margin: 0 auto; }
+  a, .linkish { color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+  .masthead { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; padding-bottom: 14px; border-bottom: 4px double var(--line-strong); }
+  .brand { font-family: var(--serif); font-size: 38px; line-height: 1.1; letter-spacing: 0.045em; word-spacing: 0.08em; }
+  .tagline { font-family: var(--serif); font-style: italic; color: var(--muted); font-size: 16px; margin-top: 2px; }
+  .est { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint); text-align: right; line-height: 1.8; }
+
+  .ticker { overflow: hidden; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .ticker-inner { display: inline-block; padding: 7px 0; font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; color: var(--muted); animation: crawl 45s linear infinite; }
+  .ticker:hover .ticker-inner { animation-play-state: paused; }
+  .ticker .sym { color: var(--ink); font-weight: 500; }
+  .ticker .up { color: var(--yes); }
+  .ticker .down { color: var(--no); }
+  .ticker .sep { color: var(--faint); margin: 0 14px; }
+  @keyframes crawl { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce) { .ticker-inner { animation: none; } }
+
+  .whoami { font-size: 13px; color: var(--muted); margin-top: 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .whoami b { color: var(--ink); font-weight: 600; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .stat .label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); }
+  .stat .value { font-family: var(--mono); font-size: 22px; font-weight: 500; margin-top: 3px; }
+  .stat .sub { font-size: 12px; color: var(--faint); }
+
+  h2.section { display: flex; align-items: center; gap: 12px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin: 34px 0 12px; font-weight: 500; }
+  h2.section::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; margin-bottom: 12px; transition: border-color 0.15s ease, background 0.15s ease; }
+  .card:hover { border-color: var(--line-strong); background: var(--card-hover); }
+  .card .top { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
+  .q { font-family: var(--serif); font-size: 20px; line-height: 1.4; letter-spacing: 0.03em; word-spacing: 0.06em; }
+  .symline { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+  .chip { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; white-space: nowrap; background: #2c2e35; color: var(--muted); border: 1px solid var(--line); }
+  .chip.yes { background: var(--yes-tint); color: var(--yes); border-color: transparent; }
+  .chip.no { background: var(--no-tint); color: var(--no); border-color: transparent; }
+  .criteria { color: var(--muted); font-size: 13px; margin-top: 8px; }
+
+  .forecast-row { display: flex; align-items: center; gap: 14px; margin-top: 18px; }
+  .forecast-row label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); white-space: nowrap; }
+  input[type=range] { flex: 1; accent-color: var(--accent); height: 20px; }
+  .prob { font-family: var(--mono); font-size: 24px; font-weight: 500; min-width: 60px; text-align: right; color: var(--accent); }
+
+  .actions { display: flex; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+  button.lock {
+    font: 500 13px var(--sans); padding: 9px 18px; border-radius: 8px;
+    border: 1px solid var(--accent-strong); background: var(--accent-strong); color: #fff; cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  button.lock:hover { background: var(--accent-hover); }
+  button.lock:disabled { opacity: 0.5; cursor: default; }
+  .hint { font-size: 12px; color: var(--faint); }
+  .err { font-size: 12px; color: var(--no); }
+
+  .locked-line { margin-top: 16px; font-size: 13px; color: var(--muted); }
+  .locked-line .me { font-family: var(--mono); color: var(--accent); font-weight: 500; }
+  .bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 10px; background: var(--no-tint); }
+  .bar .fill { height: 100%; background: var(--yes); }
+  .bar-caption { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 6px; font-family: var(--mono); letter-spacing: 0.04em; }
+  .bar-caption .y { color: var(--yes); }
+  .bar-caption .n { color: var(--no); }
+
+  table.results { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+  table.results td, table.results th { padding: 7px 9px; text-align: left; }
+  table.results th { font-family: var(--mono); color: var(--faint); font-weight: 400; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid var(--line); }
+  table.results td.num, table.results th.num { text-align: right; font-family: var(--mono); }
+  tr.me-row td { background: var(--accent-tint); }
+  tr.me-row td:first-child { border-radius: 6px 0 0 6px; }
+  tr.me-row td:last-child { border-radius: 0 6px 6px 0; }
+
+  .lb-row { display: flex; align-items: center; gap: 12px; padding: 11px 4px; border-bottom: 1px solid var(--line); }
+  .lb-row:last-child { border-bottom: none; }
+  .lb-rank { font-family: var(--serif); font-size: 18px; color: var(--faint); min-width: 20px; text-align: center; }
+  .lb-row.first .lb-rank { color: var(--accent); }
+  .avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 12px; font-weight: 500; background: var(--accent-tint); color: var(--accent); flex-shrink: 0; }
+  .lb-name { font-weight: 600; flex: 1; font-size: 14px; }
+  .badge { font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; background: #2c2e35; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+  .lb-score { font-family: var(--mono); font-weight: 500; min-width: 52px; text-align: right; }
+  .lb-score .n { display: block; font-size: 10px; color: var(--faint); font-weight: 400; }
+
+  .notice { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 22px; text-align: center; color: var(--muted); font-size: 14px; }
+
+  .oracle-note { font-size: 12px; color: var(--muted); background: var(--accent-tint); border: 1px solid transparent; border-radius: 8px; padding: 9px 13px; margin-top: 16px; }
+  .oracle-note b { color: var(--accent); }
+  footer { margin-top: 48px; text-align: center; font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); line-height: 2; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="masthead">
+    <div>
+      <div class="brand">MateoMarkets</div>
+      <div class="tagline">The world&rsquo;s leading Mateo outcomes exchange</div>
+    </div>
+    <div class="est">est. 2026<br>invite only</div>
+  </div>
+  <div class="ticker" id="ticker" aria-hidden="true"></div>
+  <div id="app"><div class="notice" style="margin-top:20px">Opening the exchange&hellip; (first load can take a few seconds)</div></div>
+  <footer>all forecasts final &middot; lower brier is better<br>past performance of mateo is not indicative of future mateo</footer>
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbwy_2Yv6fgQTlAGdM9UBa3gv9OPOyrOA7P2o7PDtLqHcn3BdSeOCbhrDzI8__s34Fpc/exec";
+
+let DATA = null;
+let ME = null;
+
+const $app = document.getElementById("app");
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const todayStr = () => {
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+};
+
+const STOPWORDS = new Set(["will","mateo","get","an","a","in","go","on","the","than","this","more","less","before","did","his","by","to","of","do","does","is","at","it"]);
+function symbol(m) {
+  const word = m.question.replace(/[?]/g,"").split(/\s+/).find(w => !STOPWORDS.has(w.toLowerCase()));
+  return "MTO\u00b7" + (word ? word.replace(/[^A-Za-z0-9&]/g,"").slice(0,6).toUpperCase() : m.id.toUpperCase());
+}
+
+function effectiveStatus(m) {
+  if (m.status === "resolved") return "resolved";
+  if (m.status === "closed") return "closed";
+  if (m.close_date && todayStr() > m.close_date) return "closed";
+  return "open";
+}
+
+function forecastsFor(marketId) {
+  const seen = {};
+  for (const f of DATA.forecasts) {
+    if (f.market_id === marketId && !(f.name in seen)) seen[f.name] = Number(f.probability);
+  }
+  return seen;
+}
+
+function crowdAvg(marketId) {
+  const vals = Object.values(forecastsFor(marketId));
+  return vals.length ? Math.round(vals.reduce((a,b)=>a+b,0)/vals.length) : null;
+}
+
+function brier(p, outcome) { return Math.pow(p/100 - (outcome === "YES" ? 1 : 0), 2); }
+
+function personStats(slug) {
+  let sum = 0, n = 0;
+  for (const m of DATA.markets) {
+    if (m.status !== "resolved" || !m.outcome) continue;
+    const fs = forecastsFor(m.id);
+    if (slug in fs) { sum += brier(fs[slug], m.outcome); n++; }
+  }
+  return { avg: n ? sum/n : null, n };
+}
+
+function leaderboard() {
+  const rows = DATA.people.map(p => ({ ...p, ...personStats(p.slug) }));
+  rows.sort((a,b) => (a.avg === null) - (b.avg === null) || a.avg - b.avg);
+  const badges = {};
+  if (rows.length && rows[0].avg !== null) badges[rows[0].slug] = "best calibrated";
+  let conv = null, contra = null;
+  for (const p of DATA.people) {
+    let cSum = 0, cN = 0, dSum = 0, dN = 0;
+    for (const m of DATA.markets) {
+      const fs = forecastsFor(m.id);
+      if (!(p.slug in fs)) continue;
+      cSum += Math.abs(fs[p.slug] - 50); cN++;
+      const others = Object.entries(fs).filter(([k]) => k !== p.slug).map(([,v]) => v);
+      if (others.length) { dSum += Math.abs(fs[p.slug] - others.reduce((a,b)=>a+b,0)/others.length); dN++; }
+    }
+    if (cN && (!conv || cSum/cN > conv.v)) conv = { slug: p.slug, v: cSum/cN };
+    if (dN && (!contra || dSum/dN > contra.v)) contra = { slug: p.slug, v: dSum/dN };
+  }
+  if (contra && !badges[contra.slug]) badges[contra.slug] = "most contrarian";
+  if (conv && !badges[conv.slug]) badges[conv.slug] = "maximum conviction";
+  return { rows, badges };
+}
+
+function initials(name) { return name.trim().split(/\s+/).map(w => w[0]).join("").slice(0,2).toUpperCase(); }
+function displayName(slug) { const p = DATA.people.find(x => x.slug === slug); return p ? p.display_name : slug; }
+
+function renderTicker() {
+  const items = DATA.markets.map(m => {
+    const sym = `<span class="sym">${esc(symbol(m))}</span>`;
+    if (m.status === "resolved" && m.outcome) {
+      return `${sym} settled <span class="${m.outcome === "YES" ? "up" : "down"}">${esc(m.outcome)}</span>`;
+    }
+    const avg = crowdAvg(m.id);
+    if (avg === null) return `${sym} no quotes yet`;
+    const cls = avg >= 50 ? "up" : "down";
+    return `${sym} <span class="${cls}">${avg}% yes</span>${effectiveStatus(m) === "closed" ? " &middot; closed" : ""}`;
+  });
+  const strip = items.join('<span class="sep">&#9670;</span>') + '<span class="sep">&#9670;</span>';
+  document.getElementById("ticker").innerHTML = `<div class="ticker-inner">${strip.repeat(2)}</div>`;
+}
+
+function render() {
+  renderTicker();
+  if (!ME) { renderPicker(); return; }
+  const me = DATA.people.find(p => p.slug === ME);
+  const open = DATA.markets.filter(m => effectiveStatus(m) === "open");
+  const closed = DATA.markets.filter(m => effectiveStatus(m) === "closed");
+  const resolved = DATA.markets.filter(m => effectiveStatus(m) === "resolved");
+  const lb = leaderboard();
+  const mine = lb.rows.find(r => r.slug === ME);
+  const myRank = mine && mine.avg !== null ? lb.rows.indexOf(mine) + 1 : null;
+
+  let html = `
+    <div class="whoami">forecasting as <b>${esc(me.display_name)}</b> <span class="linkish" onclick="switchUser()">not you?</span></div>
+    <div class="stats">
+      <div class="stat"><div class="label">your avg brier</div><div class="value">${mine && mine.avg !== null ? mine.avg.toFixed(2) : "&mdash;"}</div><div class="sub">lower is better</div></div>
+      <div class="stat"><div class="label">season rank</div><div class="value">${myRank ? "#" + myRank : "&mdash;"}</div><div class="sub">of ${DATA.people.length}</div></div>
+      <div class="stat"><div class="label">open markets</div><div class="value">${open.length}</div><div class="sub">forecast all to qualify</div></div>
+      <div class="stat"><div class="label">prize pool</div><div class="value">1 spin</div><div class="sub">of the wheel</div></div>
+    </div>`;
+
+  if (me.role === "oracle") {
+    html += `<div class="oracle-note">You are <b>the Oracle</b>. Create, close, and resolve markets directly in the Google Sheet; the site updates on next load.</div>`;
+  }
+
+  html += `<h2 class="section">Open markets</h2>`;
+  html += open.length ? open.map(marketCard).join("") : `<div class="notice">No open markets. The Oracle is deliberating.</div>`;
+
+  if (closed.length) {
+    html += `<h2 class="section">Closed &middot; awaiting resolution</h2>` + closed.map(closedCard).join("");
+  }
+
+  if (resolved.length) {
+    html += `<h2 class="section">Resolved</h2>` + resolved.map(resolvedCard).join("");
+  }
+
+  html += `<h2 class="section">Season leaderboard</h2><div class="card" style="padding:8px 20px">` +
+    lb.rows.map((r,i) => `
+      <div class="lb-row${i === 0 && r.avg !== null ? " first" : ""}">
+        <span class="lb-rank">${i+1}</span>
+        <span class="avatar">${esc(initials(r.display_name))}</span>
+        <span class="lb-name">${esc(r.display_name)}${r.slug === ME ? " (you)" : ""}</span>
+        ${lb.badges[r.slug] ? `<span class="badge">${esc(lb.badges[r.slug])}</span>` : ""}
+        <span class="lb-score">${r.avg !== null ? r.avg.toFixed(2) : "&mdash;"}<span class="n">${r.n} resolved</span></span>
+      </div>`).join("") + `</div>`;
+
+  $app.innerHTML = html;
+}
+
+function consensusHtml(marketId) {
+  const fs = forecastsFor(marketId);
+  const vals = Object.values(fs);
+  if (!vals.length) return `<div class="bar-caption"><span>no forecasts yet</span></div>`;
+  const avg = Math.round(vals.reduce((a,b)=>a+b,0) / vals.length);
+  return `<div class="bar"><div class="fill" style="width:${avg}%"></div></div>
+    <div class="bar-caption"><span class="y">yes ${avg}</span><span>${vals.length} of ${DATA.people.length} locked</span><span class="n">no ${100-avg}</span></div>`;
+}
+
+function marketCard(m) {
+  const fs = forecastsFor(m.id);
+  const mineP = fs[ME];
+  let body;
+  if (mineP !== undefined) {
+    body = `<div class="locked-line">your forecast: <span class="me">${mineP}%</span> &middot; locked</div>` + consensusHtml(m.id);
+  } else {
+    body = `
+      <div class="forecast-row">
+        <label for="s-${esc(m.id)}">your forecast</label>
+        <input type="range" id="s-${esc(m.id)}" min="1" max="99" step="1" value="50"
+          oninput="document.getElementById('p-${esc(m.id)}').textContent=this.value+'%'">
+        <span class="prob" id="p-${esc(m.id)}">50%</span>
+      </div>
+      <div class="actions">
+        <button class="lock" id="b-${esc(m.id)}" onclick="lockForecast('${esc(m.id)}')">Lock forecast</button>
+        <span class="hint">one lock, final &middot; consensus revealed after</span>
+        <span class="err" id="e-${esc(m.id)}"></span>
+      </div>`;
+  }
+  return `<div class="card">
+    <div class="symline">${esc(symbol(m))}</div>
+    <div class="top"><div class="q">${esc(m.question)}</div><span class="chip">closes ${esc(m.close_date)}</span></div>
+    <div class="criteria">${esc(m.criteria)}</div>
+    ${body}
+  </div>`;
+}
+
+function closedCard(m) {
+  const fs = forecastsFor(m.id);
+  const mineP = fs[ME];
+  return `<div class="card">
+    <div class="symline">${esc(symbol(m))}</div>
+    <div class="top"><div class="q">${esc(m.question)}</div><span class="chip">closed</span></div>
+    <div class="criteria">${esc(m.criteria)}</div>
+    ${mineP !== undefined ? `<div class="locked-line">your forecast: <span class="me">${mineP}%</span></div>` : `<div class="locked-line">you did not forecast this market</div>`}
+    ${consensusHtml(m.id)}
+  </div>`;
+}
+
+function resolvedCard(m) {
+  const fs = forecastsFor(m.id);
+  const rows = Object.entries(fs)
+    .map(([slug, p]) => ({ slug, p, b: brier(p, m.outcome) }))
+    .sort((a,b) => a.b - b.b);
+  return `<div class="card">
+    <div class="symline">${esc(symbol(m))}</div>
+    <div class="top"><div class="q">${esc(m.question)}</div>
+      <span class="chip ${m.outcome === "YES" ? "yes" : "no"}">resolved ${esc(m.outcome)}</span></div>
+    <div class="criteria">${esc(m.criteria)}</div>
+    <table class="results">
+      <tr><th>forecaster</th><th class="num">forecast</th><th class="num">brier</th></tr>
+      ${rows.map(r => `<tr class="${r.slug === ME ? "me-row" : ""}">
+        <td>${esc(displayName(r.slug))}</td><td class="num">${r.p}%</td><td class="num">${r.b.toFixed(2)}</td></tr>`).join("")}
+    </table>
+  </div>`;
+}
+
+function renderPicker() {
+  $app.innerHTML = `<div class="notice" style="margin-top:20px">
+    <div style="font-family:var(--serif);font-size:19px;letter-spacing:0.03em;margin-bottom:6px">This exchange is invite only.</div>
+    <div>Open your personal link to start forecasting. Lost it? Ask the Oracle.</div>
+  </div>`;
+}
+
+function switchUser() {
+  localStorage.removeItem("mm_name");
+  ME = null;
+  render();
+}
+
+async function lockForecast(marketId) {
+  const slider = document.getElementById("s-" + marketId);
+  const btn = document.getElementById("b-" + marketId);
+  const errEl = document.getElementById("e-" + marketId);
+  const p = parseInt(slider.value, 10);
+  if (!confirm(`Lock ${p}% on this market? Forecasts are final.`)) return;
+  btn.disabled = true; slider.disabled = true; btn.textContent = "Locking\u2026"; errEl.textContent = "";
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ name: ME, market_id: marketId, probability: p })
+    });
+    const out = await res.json();
+    if (out.ok) {
+      DATA.forecasts.push({ timestamp: "now", name: ME, market_id: marketId, probability: String(p) });
+      render();
+    } else {
+      errEl.textContent = out.error || "Something went wrong.";
+      btn.disabled = false; slider.disabled = false; btn.textContent = "Lock forecast";
+    }
+  } catch (err) {
+    errEl.textContent = "Couldn't reach the exchange. Try again in a moment.";
+    btn.disabled = false; slider.disabled = false; btn.textContent = "Lock forecast";
+  }
+}
+
+async function init() {
+  try {
+    const res = await fetch(API_URL);
+    DATA = await res.json();
+  } catch (err) {
+    $app.innerHTML = `<div class="notice" style="margin-top:20px">Couldn't reach the data service. It may be waking up; refresh in a few seconds.</div>`;
+    return;
+  }
+  const urlName = new URLSearchParams(location.search).get("name");
+  const stored = localStorage.getItem("mm_name");
+  const valid = s => s && DATA.people.some(p => p.slug === s);
+  if (valid(urlName)) { ME = urlName; localStorage.setItem("mm_name", urlName); }
+  else if (valid(stored)) { ME = stored; }
+  render();
+}
+
+init();
+</script>
+</body>
+</html>
