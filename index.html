@@ -135,7 +135,11 @@
   .sc-live { font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--yes); border: 1px solid var(--yes); border-radius: 999px; padding: 2px 8px; }
   .sc-arch { font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); border: 1px solid var(--line-strong); border-radius: 999px; padding: 2px 8px; }
   .sc-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
-  .sc-stats { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-top: 12px; }
+  .sc-meta { margin-top: 12px; }
+  .sc-line { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; padding: 3px 0; }
+  .sc-key { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); }
+  .sc-val { font-size: 13px; font-weight: 600; text-align: right; }
+  .sc-tally { font-family: var(--mono); font-size: 10px; color: var(--faint); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
 
   .notice { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 22px; text-align: center; color: var(--muted); font-size: 14px; }
   .oracle-note { font-size: 12px; color: var(--muted); background: var(--accent-tint); border: 1px solid transparent; border-radius: 8px; padding: 9px 13px; margin-top: 16px; }
@@ -202,9 +206,10 @@ function symbol(m) {
 // ---------- seasons ----------
 function currentSeason() { return (DATA.seasons||[]).find(s => s.status === "current") || null; }
 function seasonById(id) { return (DATA.seasons||[]).find(s => s.season_id === id) || null; }
-function seasonMarkets(id) { return DATA.markets.filter(m => (m.season||"") === id); }
+function isVoid(m) { const v = (m.void||"").trim().toLowerCase(); return v === "yes" || v === "true" || v === "1"; }
+function seasonMarkets(id) { return DATA.markets.filter(m => (m.season||"") === id && !isVoid(m)); }
 function boardMarkets() {
-  if (!viewSeasonId) return DATA.markets; // no seasons configured: show everything (legacy mode)
+  if (!viewSeasonId) return DATA.markets.filter(m => !isVoid(m)); // legacy mode: still hide voids
   return seasonMarkets(viewSeasonId);
 }
 function isArchivedView() { const cs = currentSeason(); return !!viewSeasonId && (!cs || viewSeasonId !== cs.season_id); }
@@ -235,12 +240,18 @@ function personStats(slug, markets) {
   return { avg: n ? sum/n : null, n };
 }
 function leaderboard(markets) {
-  const rows = DATA.people.map(p => ({ ...p, ...personStats(p.slug, markets) }));
+  // Only people who actually participated this season (placed at least one forecast on its markets)
+  const ids = new Set(markets.map(m => m.id));
+  const played = new Set();
+  for (const f of DATA.forecasts) if (ids.has(f.market_id)) played.add(f.name);
+  const roster = DATA.people.filter(p => played.has(p.slug));
+
+  const rows = roster.map(p => ({ ...p, ...personStats(p.slug, markets) }));
   rows.sort((a,b) => (a.avg === null) - (b.avg === null) || a.avg - b.avg);
   const badges = {};
   if (rows.length && rows[0].avg !== null) badges[rows[0].slug] = "best calibrated";
   let conv = null, contra = null;
-  for (const p of DATA.people) {
+  for (const p of roster) {
     let cSum = 0, cN = 0, dSum = 0, dN = 0;
     for (const m of markets) {
       const fs = forecastsFor(m.id);
@@ -258,6 +269,7 @@ function leaderboard(markets) {
 }
 function initials(name) { return name.trim().split(/\s+/).map(w => w[0]).join("").slice(0,2).toUpperCase(); }
 function displayName(slug) { const p = DATA.people.find(x => x.slug === slug); return p ? p.display_name : slug; }
+function invitedCount() { return DATA.people.filter(p => (p.role||"") !== "oracle").length; }
 
 // ---------- small html helpers ----------
 const stat = (label,value,sub) => `<div class="stat"><div class="label">${label}</div><div class="value">${value}</div><div class="sub">${sub}</div></div>`;
@@ -326,13 +338,14 @@ function render() {
   const mine = lb.rows.find(r => r.slug === ME);
   const myRank = mine && mine.avg !== null ? lb.rows.indexOf(mine) + 1 : null;
   const champ = lb.rows[0] && lb.rows[0].avg !== null ? lb.rows[0].display_name : null;
+  const players = lb.rows.length;
 
   let html = `<div class="whoami">forecasting as <b>${esc(me.display_name)}</b> <span class="linkish" onclick="switchUser()">not you?</span></div>`;
 
   const sBrier = stat("your avg brier", mine && mine.avg!==null ? mine.avg.toFixed(2) : "&mdash;", "lower is better");
-  const sRank = stat("season rank", myRank ? "#"+myRank : "&mdash;", "of "+DATA.people.length);
+  const sRank = stat("season rank", myRank ? "#"+myRank : "&mdash;", players ? "of "+players : "no players yet");
   const s3 = archived ? stat("markets", resolved.length+"/"+board.length, "resolved") : stat("open markets", open.length, "forecast all to qualify");
-  const s4 = archived ? stat("champion", champ ? esc(champ) : "&mdash;", "best calibrated") : stat("prize pool", "1 spin", "of the wheel");
+  const s4 = archived ? stat("winner", champ ? esc(champ) : "&mdash;", myRank ? "you placed #"+myRank : "you did not play") : stat("prize pool", "1 spin", "of the wheel");
   html += `<div class="stats">${sBrier}${sRank}${s3}${s4}</div>`;
 
   if (!archived && me.role === "oracle") {
@@ -368,26 +381,35 @@ function renderArchivePanel() {
     const mk = seasonMarkets(s.season_id);
     const resolved = mk.filter(m => m.status==="resolved" && m.outcome).length;
     const lb = leaderboard(mk);
-    const champ = lb.rows[0] && lb.rows[0].avg!==null ? lb.rows[0].display_name : null;
+    const winner = lb.rows[0] && lb.rows[0].avg!==null ? lb.rows[0].display_name : null;
     const live = s.status === "current";
+    const mineRow = lb.rows.find(r => r.slug === ME);
+    const myPlace = (mineRow && mineRow.avg!==null) ? "#"+(lb.rows.indexOf(mineRow)+1)+" of "+lb.rows.length
+      : (lb.rows.some(r => r.slug === ME) ? "awaiting" : "did not play");
     return `<div class="season-card" role="button" tabindex="0" onclick="viewSeason('${esc(s.season_id)}')"
       onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
       <div class="sc-top"><span class="sc-label">${esc(s.label)}</span><span class="${live?"sc-live":"sc-arch"}">${live?"live":"archived"}</span></div>
       <div class="sc-sub">${esc(s.subtitle||"")}</div>
-      <div class="sc-stats">${mk.length} market${mk.length===1?"":"s"} &middot; ${resolved} resolved${champ?` &middot; champ ${esc(champ)}`:""}</div>
+      <div class="sc-meta">
+        <div class="sc-line"><span class="sc-key">Winner</span><span class="sc-val">${winner ? esc(winner) : "&mdash;"}</span></div>
+        <div class="sc-line"><span class="sc-key">Your placement</span><span class="sc-val">${myPlace}</span></div>
+        <div class="sc-tally">${mk.length} market${mk.length===1?"":"s"} &middot; ${resolved} resolved</div>
+      </div>
     </div>`;
   }).join("");
   $app.innerHTML = `<div class="whoami">browsing the archive <span class="linkish" onclick="backToLive()">back to current</span></div>`
     + section("Seasons") + `<div class="season-grid">${cards}</div>`;
 }
 
-function consensusHtml(marketId) {
+function consensusHtml(marketId, showLocked) {
   const fs = forecastsFor(marketId);
   const vals = Object.values(fs);
   if (!vals.length) return `<div class="bar-caption"><span>no forecasts</span></div>`;
   const avg = Math.round(vals.reduce((a,b)=>a+b,0) / vals.length);
-  return `<div class="bar"><div class="fill" style="width:${avg}%"></div></div>
-    <div class="bar-caption"><span class="y">yes ${avg}</span><span>${vals.length} of ${DATA.people.length} locked</span><span class="n">no ${100-avg}</span></div>`;
+  const caption = showLocked
+    ? `<span class="y">yes ${avg}</span><span>${vals.length} of ${invitedCount()} locked</span><span class="n">no ${100-avg}</span>`
+    : `<span class="y">yes ${avg}</span><span class="n">no ${100-avg}</span>`;
+  return `<div class="bar"><div class="fill" style="width:${avg}%"></div></div><div class="bar-caption">${caption}</div>`;
 }
 
 function marketCard(m) {
@@ -395,7 +417,7 @@ function marketCard(m) {
   const mineP = fs[ME];
   let body;
   if (mineP !== undefined) {
-    body = `<div class="locked-line">your forecast: <span class="me">${mineP}%</span> &middot; locked</div>` + consensusHtml(m.id);
+    body = `<div class="locked-line">your forecast: <span class="me">${mineP}%</span> &middot; locked</div>` + consensusHtml(m.id, true);
   } else {
     body = `<div class="forecast-row">
         <label for="s-${esc(m.id)}">your forecast</label>
@@ -420,7 +442,7 @@ function positionCard(m, chip) {
     <div class="top"><div class="q">${esc(m.question)}</div><span class="chip">${esc(chip||"closed")}</span></div>
     <div class="criteria">${esc(m.criteria)}</div>
     ${mineP!==undefined ? `<div class="locked-line">your forecast: <span class="me">${mineP}%</span></div>` : `<div class="locked-line">you did not forecast this market</div>`}
-    ${consensusHtml(m.id)}</div>`;
+    ${consensusHtml(m.id, false)}</div>`;
 }
 
 function resolvedCard(m) {
