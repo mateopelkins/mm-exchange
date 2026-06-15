@@ -30,22 +30,22 @@
     --sans: "Spline Sans", system-ui, sans-serif;
     --mono: "IBM Plex Mono", ui-monospace, monospace;
   }
+  /* archived-season recolor: purple authority becomes aged amber */
+  body.archived {
+    --accent: #cda23f;
+    --accent-strong: #b88a2c;
+    --accent-hover: #cda23f;
+    --accent-tint: rgba(205, 162, 63, 0.13);
+  }
   * { box-sizing: border-box; margin: 0; }
   ::selection { background: var(--accent); color: #16171a; }
-  body {
-    font-family: var(--sans);
-    background: var(--bg);
-    color: var(--ink);
-    font-size: 15px;
-    line-height: 1.55;
-    padding: 32px 16px 60px;
-  }
+  body { font-family: var(--sans); background: var(--bg); color: var(--ink); font-size: 15px; line-height: 1.55; padding: 32px 16px 60px; }
   .wrap { max-width: 700px; margin: 0 auto; }
   a, .linkish { color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
 
   .masthead { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; padding-bottom: 14px; border-bottom: 4px double var(--line-strong); }
-  .brand { font-family: var(--serif); font-size: 38px; line-height: 1.1; letter-spacing: 0.045em; word-spacing: 0.08em; }
+  .brand { font-family: var(--serif); font-size: clamp(30px, 8.5vw, 38px); line-height: 1.1; letter-spacing: 0.045em; word-spacing: 0.08em; }
   .tagline { font-family: var(--serif); font-style: italic; color: var(--muted); font-size: 16px; margin-top: 2px; }
   .est { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint); text-align: right; line-height: 1.8; }
 
@@ -58,6 +58,14 @@
   .ticker .sep { color: var(--faint); margin: 0 14px; }
   @keyframes crawl { from { transform: translateX(0); } to { transform: translateX(-50%); } }
   @media (prefers-reduced-motion: reduce) { .ticker-inner { animation: none; } }
+
+  .topnav { display: flex; justify-content: flex-end; padding: 10px 0 0; }
+  .btn-ghost { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 8px; padding: 7px 13px; cursor: pointer; transition: border-color 0.15s ease, color 0.15s ease; }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  .archive-banner { position: sticky; top: 8px; z-index: 5; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; background: #2e2a1d; border: 1px solid rgba(205,162,63,0.45); border-radius: 10px; padding: 11px 15px; margin: 10px 0 20px; }
+  .archive-banner b { font-family: var(--serif); font-weight: 400; font-size: 19px; }
+  .ab-tag { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #cda23f; border: 1px solid #cda23f; border-radius: 4px; padding: 2px 8px; margin-right: 8px; }
 
   .whoami { font-size: 13px; color: var(--muted); margin-top: 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
   .whoami b { color: var(--ink); font-weight: 600; }
@@ -74,9 +82,9 @@
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; margin-bottom: 12px; transition: border-color 0.15s ease, background 0.15s ease; }
   .card:hover { border-color: var(--line-strong); background: var(--card-hover); }
   .card .top { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
-  .q { font-family: var(--serif); font-size: 20px; line-height: 1.4; letter-spacing: 0.03em; word-spacing: 0.06em; }
+  .q { font-family: var(--serif); font-size: 20px; line-height: 1.4; letter-spacing: 0.03em; word-spacing: 0.06em; flex: 1; min-width: 0; overflow-wrap: anywhere; }
   .symline { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
-  .chip { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; white-space: nowrap; background: #2c2e35; color: var(--muted); border: 1px solid var(--line); }
+  .chip { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; white-space: nowrap; background: #2c2e35; color: var(--muted); border: 1px solid var(--line); flex-shrink: 0; }
   .chip.yes { background: var(--yes-tint); color: var(--yes); border-color: transparent; }
   .chip.no { background: var(--no-tint); color: var(--no); border-color: transparent; }
   .criteria { color: var(--muted); font-size: 13px; margin-top: 8px; }
@@ -87,11 +95,7 @@
   .prob { font-family: var(--mono); font-size: 24px; font-weight: 500; min-width: 60px; text-align: right; color: var(--accent); }
 
   .actions { display: flex; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
-  button.lock {
-    font: 500 13px var(--sans); padding: 9px 18px; border-radius: 8px;
-    border: 1px solid var(--accent-strong); background: var(--accent-strong); color: #fff; cursor: pointer;
-    transition: background 0.15s ease;
-  }
+  button.lock { font: 500 13px var(--sans); padding: 9px 18px; border-radius: 8px; border: 1px solid var(--accent-strong); background: var(--accent-strong); color: #fff; cursor: pointer; transition: background 0.15s ease; }
   button.lock:hover { background: var(--accent-hover); }
   button.lock:disabled { opacity: 0.5; cursor: default; }
   .hint { font-size: 12px; color: var(--faint); }
@@ -123,23 +127,56 @@
   .lb-score { font-family: var(--mono); font-weight: 500; min-width: 52px; text-align: right; }
   .lb-score .n { display: block; font-size: 10px; color: var(--faint); font-weight: 400; }
 
-  .notice { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 22px; text-align: center; color: var(--muted); font-size: 14px; }
+  .season-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+  .season-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; cursor: pointer; transition: border-color 0.15s ease; }
+  .season-card:hover { border-color: var(--accent); }
+  .sc-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .sc-label { font-family: var(--serif); font-size: 21px; }
+  .sc-live { font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--yes); border: 1px solid var(--yes); border-radius: 999px; padding: 2px 8px; }
+  .sc-arch { font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); border: 1px solid var(--line-strong); border-radius: 999px; padding: 2px 8px; }
+  .sc-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .sc-stats { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-top: 12px; }
 
+  .notice { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 22px; text-align: center; color: var(--muted); font-size: 14px; }
   .oracle-note { font-size: 12px; color: var(--muted); background: var(--accent-tint); border: 1px solid transparent; border-radius: 8px; padding: 9px 13px; margin-top: 16px; }
   .oracle-note b { color: var(--accent); }
   footer { margin-top: 48px; text-align: center; font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); line-height: 2; }
+
+  @media (max-width: 560px) {
+    body { padding: 22px 13px 48px; }
+    .masthead { align-items: flex-start; }
+    .tagline { font-size: 15px; }
+    .est { text-align: left; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .card { padding: 15px 16px; }
+    .card .top { gap: 10px; }
+    .q { font-size: 19px; }
+    .chip { font-size: 9px; padding: 3px 8px; }
+    .symline { font-size: 9px; }
+    .forecast-row { flex-wrap: wrap; gap: 8px 12px; margin-top: 16px; }
+    .forecast-row label { flex-basis: 100%; }
+    .prob { font-size: 22px; }
+    .actions .lock { width: 100%; }
+    .btn-ghost { padding: 9px 14px; }
+    .lb-row { gap: 9px; padding: 10px 2px; }
+    .lb-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+    .badge { font-size: 9px; padding: 3px 7px; }
+    .season-grid { grid-template-columns: 1fr; }
+    h2.section { margin: 26px 0 10px; }
+    table.results td, table.results th { padding: 6px 6px; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="masthead">
+  <header class="masthead">
     <div>
       <div class="brand">MateoMarkets</div>
       <div class="tagline">The world&rsquo;s leading Mateo outcomes exchange</div>
     </div>
     <div class="est">est. 2026<br>invite only</div>
-  </div>
-  <div class="ticker" id="ticker" aria-hidden="true"></div>
+  </header>
+  <div id="chrome"></div>
   <div id="app"><div class="notice" style="margin-top:20px">Opening the exchange&hellip; (first load can take a few seconds)</div></div>
   <footer>all forecasts final &middot; lower brier is better<br>past performance of mateo is not indicative of future mateo</footer>
 </div>
@@ -149,27 +186,36 @@ const API_URL = "https://script.google.com/macros/s/AKfycbwy_2Yv6fgQTlAGdM9UBa3g
 
 let DATA = null;
 let ME = null;
+let viewSeasonId = null;   // which season's board is shown
+let showArchive = false;   // archive panel open instead of a board
 
 const $app = document.getElementById("app");
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const todayStr = () => {
-  const d = new Date();
-  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
-};
+const todayStr = () => { const d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
 
 const STOPWORDS = new Set(["will","mateo","get","an","a","in","go","on","the","than","this","more","less","before","did","his","by","to","of","do","does","is","at","it"]);
 function symbol(m) {
   const word = m.question.replace(/[?]/g,"").split(/\s+/).find(w => !STOPWORDS.has(w.toLowerCase()));
-  return "MTO\u00b7" + (word ? word.replace(/[^A-Za-z0-9&]/g,"").slice(0,6).toUpperCase() : m.id.toUpperCase());
+  return "MTO\u00b7" + (word ? word.replace(/[^A-Za-z0-9&]/g,"").slice(0,6).toUpperCase() : (m.id||"").toUpperCase());
 }
 
+// ---------- seasons ----------
+function currentSeason() { return (DATA.seasons||[]).find(s => s.status === "current") || null; }
+function seasonById(id) { return (DATA.seasons||[]).find(s => s.season_id === id) || null; }
+function seasonMarkets(id) { return DATA.markets.filter(m => (m.season||"") === id); }
+function boardMarkets() {
+  if (!viewSeasonId) return DATA.markets; // no seasons configured: show everything (legacy mode)
+  return seasonMarkets(viewSeasonId);
+}
+function isArchivedView() { const cs = currentSeason(); return !!viewSeasonId && (!cs || viewSeasonId !== cs.season_id); }
+
+// ---------- scoring ----------
 function effectiveStatus(m) {
   if (m.status === "resolved") return "resolved";
   if (m.status === "closed") return "closed";
   if (m.close_date && todayStr() > m.close_date) return "closed";
   return "open";
 }
-
 function forecastsFor(marketId) {
   const seen = {};
   for (const f of DATA.forecasts) {
@@ -177,33 +223,26 @@ function forecastsFor(marketId) {
   }
   return seen;
 }
-
-function crowdAvg(marketId) {
-  const vals = Object.values(forecastsFor(marketId));
-  return vals.length ? Math.round(vals.reduce((a,b)=>a+b,0)/vals.length) : null;
-}
-
+function crowdAvg(marketId) { const v = Object.values(forecastsFor(marketId)); return v.length ? Math.round(v.reduce((a,b)=>a+b,0)/v.length) : null; }
 function brier(p, outcome) { return Math.pow(p/100 - (outcome === "YES" ? 1 : 0), 2); }
-
-function personStats(slug) {
+function personStats(slug, markets) {
   let sum = 0, n = 0;
-  for (const m of DATA.markets) {
+  for (const m of markets) {
     if (m.status !== "resolved" || !m.outcome) continue;
     const fs = forecastsFor(m.id);
     if (slug in fs) { sum += brier(fs[slug], m.outcome); n++; }
   }
   return { avg: n ? sum/n : null, n };
 }
-
-function leaderboard() {
-  const rows = DATA.people.map(p => ({ ...p, ...personStats(p.slug) }));
+function leaderboard(markets) {
+  const rows = DATA.people.map(p => ({ ...p, ...personStats(p.slug, markets) }));
   rows.sort((a,b) => (a.avg === null) - (b.avg === null) || a.avg - b.avg);
   const badges = {};
   if (rows.length && rows[0].avg !== null) badges[rows[0].slug] = "best calibrated";
   let conv = null, contra = null;
   for (const p of DATA.people) {
     let cSum = 0, cN = 0, dSum = 0, dN = 0;
-    for (const m of DATA.markets) {
+    for (const m of markets) {
       const fs = forecastsFor(m.id);
       if (!(p.slug in fs)) continue;
       cSum += Math.abs(fs[p.slug] - 50); cN++;
@@ -217,77 +256,135 @@ function leaderboard() {
   if (conv && !badges[conv.slug]) badges[conv.slug] = "maximum conviction";
   return { rows, badges };
 }
-
 function initials(name) { return name.trim().split(/\s+/).map(w => w[0]).join("").slice(0,2).toUpperCase(); }
 function displayName(slug) { const p = DATA.people.find(x => x.slug === slug); return p ? p.display_name : slug; }
 
-function renderTicker() {
-  const items = DATA.markets.map(m => {
-    const sym = `<span class="sym">${esc(symbol(m))}</span>`;
-    if (m.status === "resolved" && m.outcome) {
-      return `${sym} settled <span class="${m.outcome === "YES" ? "up" : "down"}">${esc(m.outcome)}</span>`;
-    }
-    const avg = crowdAvg(m.id);
-    if (avg === null) return `${sym} no quotes yet`;
-    const cls = avg >= 50 ? "up" : "down";
-    return `${sym} <span class="${cls}">${avg}% yes</span>${effectiveStatus(m) === "closed" ? " &middot; closed" : ""}`;
-  });
-  const strip = items.join('<span class="sep">&#9670;</span>') + '<span class="sep">&#9670;</span>';
-  document.getElementById("ticker").innerHTML = `<div class="ticker-inner">${strip.repeat(2)}</div>`;
+// ---------- small html helpers ----------
+const stat = (label,value,sub) => `<div class="stat"><div class="label">${label}</div><div class="value">${value}</div><div class="sub">${sub}</div></div>`;
+const section = (t) => `<h2 class="section">${t}</h2>`;
+function lbRow(r,i,badges) {
+  return `<div class="lb-row${i===0 && r.avg!==null ? " first" : ""}">
+    <span class="lb-rank">${i+1}</span>
+    <span class="avatar">${esc(initials(r.display_name))}</span>
+    <span class="lb-name">${esc(r.display_name)}${r.slug===ME ? " (you)" : ""}</span>
+    ${badges[r.slug] ? `<span class="badge">${esc(badges[r.slug])}</span>` : ""}
+    <span class="lb-score">${r.avg!==null ? r.avg.toFixed(2) : "&mdash;"}<span class="n">${r.n} resolved</span></span>
+  </div>`;
 }
 
+// ---------- ticker / chrome ----------
+function tickerInner(markets) {
+  if (!markets || !markets.length) return `<span class="sym">MTO</span> season opening soon &middot; no live quotes <span class="sep">&#9670;</span>`;
+  const items = markets.map(m => {
+    const sym = `<span class="sym">${esc(symbol(m))}</span>`;
+    if (m.status === "resolved" && m.outcome) return `${sym} settled <span class="${m.outcome==="YES"?"up":"down"}">${esc(m.outcome)}</span>`;
+    const avg = crowdAvg(m.id);
+    if (avg === null) return `${sym} no quotes yet`;
+    return `${sym} <span class="${avg>=50?"up":"down"}">${avg}% yes</span>${effectiveStatus(m)==="closed"?" &middot; closed":""}`;
+  });
+  return items.join('<span class="sep">&#9670;</span>') + '<span class="sep">&#9670;</span>';
+}
+function renderChrome() {
+  const chrome = document.getElementById("chrome");
+  if (!ME) { chrome.innerHTML = ""; return; }
+  if (showArchive) {
+    chrome.innerHTML = `<div class="archive-banner"><div><span class="ab-tag">archive</span> browse past seasons</div>
+      <button class="btn-ghost" onclick="backToLive()">&larr; back to current</button></div>`;
+    return;
+  }
+  if (isArchivedView()) {
+    const s = seasonById(viewSeasonId);
+    chrome.innerHTML = `<div class="archive-banner"><div><span class="ab-tag">archived</span> <b>${esc(s?s.label:"Season")}</b>${s&&s.subtitle?` &middot; ${esc(s.subtitle)}`:""}</div>
+      <button class="btn-ghost" onclick="backToLive()">&larr; back to current season</button></div>`;
+    return;
+  }
+  const strip = tickerInner(boardMarkets());
+  const hasSeasons = (DATA.seasons||[]).length > 0;
+  chrome.innerHTML = `<div class="ticker" aria-hidden="true"><div class="ticker-inner">${strip}${strip}</div></div>`
+    + (hasSeasons ? `<div class="topnav"><button class="btn-ghost" onclick="openArchive()">&#9636; past seasons</button></div>` : "");
+}
+
+// ---------- navigation ----------
+function openArchive() { showArchive = true; render(); window.scrollTo(0,0); }
+function viewSeason(id) { showArchive = false; viewSeasonId = id; render(); window.scrollTo(0,0); }
+function backToLive() { showArchive = false; const cs = currentSeason(); viewSeasonId = cs ? cs.season_id : null; render(); window.scrollTo(0,0); }
+
+// ---------- views ----------
 function render() {
-  renderTicker();
+  const archived = !showArchive && isArchivedView();
+  document.body.classList.toggle("archived", archived);
+  renderChrome();
   if (!ME) { renderPicker(); return; }
+  if (showArchive) { renderArchivePanel(); return; }
+
   const me = DATA.people.find(p => p.slug === ME);
-  const open = DATA.markets.filter(m => effectiveStatus(m) === "open");
-  const closed = DATA.markets.filter(m => effectiveStatus(m) === "closed");
-  const resolved = DATA.markets.filter(m => effectiveStatus(m) === "resolved");
-  const lb = leaderboard();
+  const board = boardMarkets();
+  const open = board.filter(m => effectiveStatus(m) === "open");
+  const closed = board.filter(m => effectiveStatus(m) === "closed");
+  const resolved = board.filter(m => effectiveStatus(m) === "resolved");
+  const lb = leaderboard(board);
   const mine = lb.rows.find(r => r.slug === ME);
   const myRank = mine && mine.avg !== null ? lb.rows.indexOf(mine) + 1 : null;
+  const champ = lb.rows[0] && lb.rows[0].avg !== null ? lb.rows[0].display_name : null;
 
-  let html = `
-    <div class="whoami">forecasting as <b>${esc(me.display_name)}</b> <span class="linkish" onclick="switchUser()">not you?</span></div>
-    <div class="stats">
-      <div class="stat"><div class="label">your avg brier</div><div class="value">${mine && mine.avg !== null ? mine.avg.toFixed(2) : "&mdash;"}</div><div class="sub">lower is better</div></div>
-      <div class="stat"><div class="label">season rank</div><div class="value">${myRank ? "#" + myRank : "&mdash;"}</div><div class="sub">of ${DATA.people.length}</div></div>
-      <div class="stat"><div class="label">open markets</div><div class="value">${open.length}</div><div class="sub">forecast all to qualify</div></div>
-      <div class="stat"><div class="label">prize pool</div><div class="value">1 spin</div><div class="sub">of the wheel</div></div>
-    </div>`;
+  let html = `<div class="whoami">forecasting as <b>${esc(me.display_name)}</b> <span class="linkish" onclick="switchUser()">not you?</span></div>`;
 
-  if (me.role === "oracle") {
+  const sBrier = stat("your avg brier", mine && mine.avg!==null ? mine.avg.toFixed(2) : "&mdash;", "lower is better");
+  const sRank = stat("season rank", myRank ? "#"+myRank : "&mdash;", "of "+DATA.people.length);
+  const s3 = archived ? stat("markets", resolved.length+"/"+board.length, "resolved") : stat("open markets", open.length, "forecast all to qualify");
+  const s4 = archived ? stat("champion", champ ? esc(champ) : "&mdash;", "best calibrated") : stat("prize pool", "1 spin", "of the wheel");
+  html += `<div class="stats">${sBrier}${sRank}${s3}${s4}</div>`;
+
+  if (!archived && me.role === "oracle") {
     html += `<div class="oracle-note">You are <b>the Oracle</b>. Create, close, and resolve markets directly in the Google Sheet; the site updates on next load.</div>`;
   }
 
-  html += `<h2 class="section">Open markets</h2>`;
-  html += open.length ? open.map(marketCard).join("") : `<div class="notice">No open markets. The Oracle is deliberating.</div>`;
-
-  if (closed.length) {
-    html += `<h2 class="section">Closed &middot; awaiting resolution</h2>` + closed.map(closedCard).join("");
+  if (archived) {
+    const unresolved = [...open, ...closed];
+    if (unresolved.length) html += section("Unresolved at archive") + unresolved.map(m => positionCard(m, "unresolved")).join("");
+    if (resolved.length) html += section("Resolved") + resolved.map(resolvedCard).join("");
+    if (!board.length) html += `<div class="notice">This season has no recorded markets.</div>`;
+  } else {
+    html += section("Open markets");
+    html += open.length ? open.map(marketCard).join("") : `<div class="notice">No open markets. The Oracle is deliberating.</div>`;
+    if (closed.length) html += section("Closed &middot; awaiting resolution") + closed.map(m => positionCard(m, "closed")).join("");
+    if (resolved.length) html += section("Resolved") + resolved.map(resolvedCard).join("");
   }
 
-  if (resolved.length) {
-    html += `<h2 class="section">Resolved</h2>` + resolved.map(resolvedCard).join("");
-  }
-
-  html += `<h2 class="section">Season leaderboard</h2><div class="card" style="padding:8px 20px">` +
-    lb.rows.map((r,i) => `
-      <div class="lb-row${i === 0 && r.avg !== null ? " first" : ""}">
-        <span class="lb-rank">${i+1}</span>
-        <span class="avatar">${esc(initials(r.display_name))}</span>
-        <span class="lb-name">${esc(r.display_name)}${r.slug === ME ? " (you)" : ""}</span>
-        ${lb.badges[r.slug] ? `<span class="badge">${esc(lb.badges[r.slug])}</span>` : ""}
-        <span class="lb-score">${r.avg !== null ? r.avg.toFixed(2) : "&mdash;"}<span class="n">${r.n} resolved</span></span>
-      </div>`).join("") + `</div>`;
+  html += section(archived ? "Final standings" : "Season leaderboard")
+    + `<div class="card" style="padding:8px 20px">` + lb.rows.map((r,i) => lbRow(r,i,lb.badges)).join("") + `</div>`;
 
   $app.innerHTML = html;
+}
+
+function renderArchivePanel() {
+  const seasons = (DATA.seasons||[]).slice().sort((a,b) => {
+    if (a.status==="current" && b.status!=="current") return -1;
+    if (b.status==="current" && a.status!=="current") return 1;
+    return (a.season_id < b.season_id) ? 1 : -1;
+  });
+  if (!seasons.length) { $app.innerHTML = `<div class="notice">No seasons defined yet.</div>`; return; }
+  const cards = seasons.map(s => {
+    const mk = seasonMarkets(s.season_id);
+    const resolved = mk.filter(m => m.status==="resolved" && m.outcome).length;
+    const lb = leaderboard(mk);
+    const champ = lb.rows[0] && lb.rows[0].avg!==null ? lb.rows[0].display_name : null;
+    const live = s.status === "current";
+    return `<div class="season-card" role="button" tabindex="0" onclick="viewSeason('${esc(s.season_id)}')"
+      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+      <div class="sc-top"><span class="sc-label">${esc(s.label)}</span><span class="${live?"sc-live":"sc-arch"}">${live?"live":"archived"}</span></div>
+      <div class="sc-sub">${esc(s.subtitle||"")}</div>
+      <div class="sc-stats">${mk.length} market${mk.length===1?"":"s"} &middot; ${resolved} resolved${champ?` &middot; champ ${esc(champ)}`:""}</div>
+    </div>`;
+  }).join("");
+  $app.innerHTML = `<div class="whoami">browsing the archive <span class="linkish" onclick="backToLive()">back to current</span></div>`
+    + section("Seasons") + `<div class="season-grid">${cards}</div>`;
 }
 
 function consensusHtml(marketId) {
   const fs = forecastsFor(marketId);
   const vals = Object.values(fs);
-  if (!vals.length) return `<div class="bar-caption"><span>no forecasts yet</span></div>`;
+  if (!vals.length) return `<div class="bar-caption"><span>no forecasts</span></div>`;
   const avg = Math.round(vals.reduce((a,b)=>a+b,0) / vals.length);
   return `<div class="bar"><div class="fill" style="width:${avg}%"></div></div>
     <div class="bar-caption"><span class="y">yes ${avg}</span><span>${vals.length} of ${DATA.people.length} locked</span><span class="n">no ${100-avg}</span></div>`;
@@ -300,11 +397,9 @@ function marketCard(m) {
   if (mineP !== undefined) {
     body = `<div class="locked-line">your forecast: <span class="me">${mineP}%</span> &middot; locked</div>` + consensusHtml(m.id);
   } else {
-    body = `
-      <div class="forecast-row">
+    body = `<div class="forecast-row">
         <label for="s-${esc(m.id)}">your forecast</label>
-        <input type="range" id="s-${esc(m.id)}" min="1" max="99" step="1" value="50"
-          oninput="document.getElementById('p-${esc(m.id)}').textContent=this.value+'%'">
+        <input type="range" id="s-${esc(m.id)}" min="1" max="99" step="1" value="50" oninput="document.getElementById('p-${esc(m.id)}').textContent=this.value+'%'">
         <span class="prob" id="p-${esc(m.id)}">50%</span>
       </div>
       <div class="actions">
@@ -313,56 +408,38 @@ function marketCard(m) {
         <span class="err" id="e-${esc(m.id)}"></span>
       </div>`;
   }
-  return `<div class="card">
-    <div class="symline">${esc(symbol(m))}</div>
+  return `<div class="card"><div class="symline">${esc(symbol(m))}</div>
     <div class="top"><div class="q">${esc(m.question)}</div><span class="chip">closes ${esc(m.close_date)}</span></div>
-    <div class="criteria">${esc(m.criteria)}</div>
-    ${body}
-  </div>`;
+    <div class="criteria">${esc(m.criteria)}</div>${body}</div>`;
 }
 
-function closedCard(m) {
+function positionCard(m, chip) {
   const fs = forecastsFor(m.id);
   const mineP = fs[ME];
-  return `<div class="card">
-    <div class="symline">${esc(symbol(m))}</div>
-    <div class="top"><div class="q">${esc(m.question)}</div><span class="chip">closed</span></div>
+  return `<div class="card"><div class="symline">${esc(symbol(m))}</div>
+    <div class="top"><div class="q">${esc(m.question)}</div><span class="chip">${esc(chip||"closed")}</span></div>
     <div class="criteria">${esc(m.criteria)}</div>
-    ${mineP !== undefined ? `<div class="locked-line">your forecast: <span class="me">${mineP}%</span></div>` : `<div class="locked-line">you did not forecast this market</div>`}
-    ${consensusHtml(m.id)}
-  </div>`;
+    ${mineP!==undefined ? `<div class="locked-line">your forecast: <span class="me">${mineP}%</span></div>` : `<div class="locked-line">you did not forecast this market</div>`}
+    ${consensusHtml(m.id)}</div>`;
 }
 
 function resolvedCard(m) {
   const fs = forecastsFor(m.id);
-  const rows = Object.entries(fs)
-    .map(([slug, p]) => ({ slug, p, b: brier(p, m.outcome) }))
-    .sort((a,b) => a.b - b.b);
-  return `<div class="card">
-    <div class="symline">${esc(symbol(m))}</div>
-    <div class="top"><div class="q">${esc(m.question)}</div>
-      <span class="chip ${m.outcome === "YES" ? "yes" : "no"}">resolved ${esc(m.outcome)}</span></div>
+  const rows = Object.entries(fs).map(([slug,p]) => ({ slug, p, b: brier(p, m.outcome) })).sort((a,b) => a.b - b.b);
+  return `<div class="card"><div class="symline">${esc(symbol(m))}</div>
+    <div class="top"><div class="q">${esc(m.question)}</div><span class="chip ${m.outcome==="YES"?"yes":"no"}">resolved ${esc(m.outcome)}</span></div>
     <div class="criteria">${esc(m.criteria)}</div>
-    <table class="results">
-      <tr><th>forecaster</th><th class="num">forecast</th><th class="num">brier</th></tr>
-      ${rows.map(r => `<tr class="${r.slug === ME ? "me-row" : ""}">
-        <td>${esc(displayName(r.slug))}</td><td class="num">${r.p}%</td><td class="num">${r.b.toFixed(2)}</td></tr>`).join("")}
-    </table>
-  </div>`;
+    <table class="results"><tr><th>forecaster</th><th class="num">forecast</th><th class="num">brier</th></tr>
+      ${rows.map(r => `<tr class="${r.slug===ME?"me-row":""}"><td>${esc(displayName(r.slug))}</td><td class="num">${r.p}%</td><td class="num">${r.b.toFixed(2)}</td></tr>`).join("")}
+    </table></div>`;
 }
 
 function renderPicker() {
   $app.innerHTML = `<div class="notice" style="margin-top:20px">
     <div style="font-family:var(--serif);font-size:19px;letter-spacing:0.03em;margin-bottom:6px">This exchange is invite only.</div>
-    <div>Open your personal link to start forecasting. Lost it? Ask the Oracle.</div>
-  </div>`;
+    <div>Open your personal link to start forecasting. Lost it? Ask the Oracle.</div></div>`;
 }
-
-function switchUser() {
-  localStorage.removeItem("mm_name");
-  ME = null;
-  render();
-}
+function switchUser() { localStorage.removeItem("mm_name"); ME = null; render(); }
 
 async function lockForecast(marketId) {
   const slider = document.getElementById("s-" + marketId);
@@ -372,11 +449,8 @@ async function lockForecast(marketId) {
   if (!confirm(`Lock ${p}% on this market? Forecasts are final.`)) return;
   btn.disabled = true; slider.disabled = true; btn.textContent = "Locking\u2026"; errEl.textContent = "";
   try {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ name: ME, market_id: marketId, probability: p })
-    });
+    const res = await fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ name: ME, market_id: marketId, probability: p }) });
     const out = await res.json();
     if (out.ok) {
       DATA.forecasts.push({ timestamp: "now", name: ME, market_id: marketId, probability: String(p) });
@@ -392,13 +466,10 @@ async function lockForecast(marketId) {
 }
 
 async function init() {
-  try {
-    const res = await fetch(API_URL);
-    DATA = await res.json();
-  } catch (err) {
-    $app.innerHTML = `<div class="notice" style="margin-top:20px">Couldn't reach the data service. It may be waking up; refresh in a few seconds.</div>`;
-    return;
-  }
+  try { const res = await fetch(API_URL); DATA = await res.json(); }
+  catch (err) { $app.innerHTML = `<div class="notice" style="margin-top:20px">Couldn't reach the data service. It may be waking up; refresh in a few seconds.</div>`; return; }
+  const cs = currentSeason();
+  viewSeasonId = cs ? cs.season_id : null;
   const urlName = new URLSearchParams(location.search).get("name");
   const stored = localStorage.getItem("mm_name");
   const valid = s => s && DATA.people.some(p => p.slug === s);
