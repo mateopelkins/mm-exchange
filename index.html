@@ -40,7 +40,7 @@
   * { box-sizing: border-box; margin: 0; }
   ::selection { background: var(--accent); color: #16171a; }
   body { font-family: var(--sans); background: var(--bg); color: var(--ink); font-size: 15px; line-height: 1.55; padding: 32px 16px 60px; }
-  .wrap { max-width: 700px; margin: 0 auto; }
+  .wrap { max-width: 980px; margin: 0 auto; }
   a, .linkish { color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
 
@@ -117,15 +117,15 @@
   tr.me-row td:first-child { border-radius: 6px 0 0 6px; }
   tr.me-row td:last-child { border-radius: 0 6px 6px 0; }
 
-  .lb-row { display: flex; align-items: center; gap: 12px; padding: 11px 4px; border-bottom: 1px solid var(--line); }
+  .lb-row { display: flex; align-items: center; gap: 9px; padding: 9px 2px; border-bottom: 1px solid var(--line); }
   .lb-row:last-child { border-bottom: none; }
-  .lb-rank { font-family: var(--serif); font-size: 18px; color: var(--faint); min-width: 20px; text-align: center; }
+  .lb-rank { font-family: var(--serif); font-size: 17px; color: var(--faint); min-width: 16px; text-align: center; }
   .lb-row.first .lb-rank { color: var(--accent); }
-  .avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 12px; font-weight: 500; background: var(--accent-tint); color: var(--accent); flex-shrink: 0; }
-  .lb-name { font-weight: 600; flex: 1; font-size: 14px; }
-  .badge { font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; background: #2c2e35; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
-  .lb-score { font-family: var(--mono); font-weight: 500; min-width: 52px; text-align: right; }
-  .lb-score .n { display: block; font-size: 10px; color: var(--faint); font-weight: 400; }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 11px; font-weight: 500; background: var(--accent-tint); color: var(--accent); flex-shrink: 0; }
+  .lb-name { font-weight: 600; flex: 1; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .badge { font-family: var(--mono); font-size: 9px; letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 7px; border-radius: 999px; background: #2c2e35; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+  .lb-score { font-family: var(--mono); font-weight: 500; min-width: 40px; text-align: right; font-size: 13px; }
+  .lb-score .n { display: block; font-size: 9px; color: var(--faint); font-weight: 400; }
 
   .season-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
   .season-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; cursor: pointer; transition: border-color 0.15s ease; }
@@ -142,9 +142,42 @@
   .sc-tally { font-family: var(--mono); font-size: 10px; color: var(--faint); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
 
   .notice { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 22px; text-align: center; color: var(--muted); font-size: 14px; }
+
+  .layout { display: flex; gap: 28px; align-items: flex-start; margin-top: 18px; }
+  .rail { flex: 0 0 300px; order: 1; position: sticky; top: 18px; }
+  .main { flex: 1 1 auto; min-width: 0; order: 2; }
+  .rail-h { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin: 22px 0 10px; font-weight: 500; }
+  .rail-h:first-child { margin-top: 0; }
+  .main h2.section:first-child { margin-top: 0; }
+
+  .profile { padding: 16px 18px; }
+  .prof-h { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint); margin-bottom: 14px; }
+  .prof-group + .prof-group { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .pg-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+  .pg-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+  .pg-stats > div { min-width: 0; }
+  .pg-v { font-family: var(--mono); font-size: 20px; font-weight: 500; line-height: 1.1; }
+  .pg-l { font-size: 11px; color: var(--faint); margin-top: 2px; }
+  .prof-archive { margin-top: 16px; width: 100%; }
+
+  .lb-empty { font-size: 13px; color: var(--faint); text-align: center; padding: 10px 0; }
+
+  .prize { padding: 4px 16px; }
+  .prize-row { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .prize-row:last-child { border-bottom: none; }
+  .prize-place { font-family: var(--serif); font-size: 22px; line-height: 1; color: var(--accent); min-width: 26px; text-align: center; flex-shrink: 0; padding-top: 1px; }
+  .prize-title { font-weight: 600; font-size: 14px; }
+  .prize-detail { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.45; }
   .oracle-note { font-size: 12px; color: var(--muted); background: var(--accent-tint); border: 1px solid transparent; border-radius: 8px; padding: 9px 13px; margin-top: 16px; }
   .oracle-note b { color: var(--accent); }
   footer { margin-top: 48px; text-align: center; font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); line-height: 2; }
+
+  @media (max-width: 760px) {
+    .layout { flex-direction: column; gap: 8px; }
+    .rail { order: 2; position: static; flex-basis: auto; width: 100%; }
+    .main { order: 1; width: 100%; }
+    .main h2.section:first-child { margin-top: 8px; }
+  }
 
   @media (max-width: 560px) {
     body { padding: 22px 13px 48px; }
@@ -197,8 +230,10 @@ const $app = document.getElementById("app");
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const todayStr = () => { const d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
 
-const STOPWORDS = new Set(["will","mateo","get","an","a","in","go","on","the","than","this","more","less","before","did","his","by","to","of","do","does","is","at","it"]);
+const STOPWORDS = new Set(["will","mateo","get","an","a","in","go","on","the","than","this","more","less","before","did","his","by","to","of","do","does","is","at","it","ever","have","be","had","been","with","under","over","or","no","not","for","and","he","him"]);
 function symbol(m) {
+  const explicit = (m.ticker||"").trim();
+  if (explicit) return "MTO\u00b7" + explicit.toUpperCase().replace(/\s+/g,"");
   const word = m.question.replace(/[?]/g,"").split(/\s+/).find(w => !STOPWORDS.has(w.toLowerCase()));
   return "MTO\u00b7" + (word ? word.replace(/[^A-Za-z0-9&]/g,"").slice(0,6).toUpperCase() : (m.id||"").toUpperCase());
 }
@@ -270,6 +305,17 @@ function leaderboard(markets) {
 function initials(name) { return name.trim().split(/\s+/).map(w => w[0]).join("").slice(0,2).toUpperCase(); }
 function displayName(slug) { const p = DATA.people.find(x => x.slug === slug); return p ? p.display_name : slug; }
 function invitedCount() { return DATA.people.filter(p => (p.role||"") !== "oracle").length; }
+function marketById(id) { return DATA.markets.find(m => m.id === id); }
+function allLiveMarkets() { return DATA.markets.filter(m => !isVoid(m)); }
+function seasonsPlayedBy(slug) {
+  const ids = new Set();
+  for (const f of DATA.forecasts) {
+    if (f.name !== slug) continue;
+    const m = marketById(f.market_id);
+    if (m && !isVoid(m) && (m.season||"")) ids.add(m.season);
+  }
+  return ids.size;
+}
 
 // ---------- small html helpers ----------
 const stat = (label,value,sub) => `<div class="stat"><div class="label">${label}</div><div class="value">${value}</div><div class="sub">${sub}</div></div>`;
@@ -311,9 +357,7 @@ function renderChrome() {
     return;
   }
   const strip = tickerInner(boardMarkets());
-  const hasSeasons = (DATA.seasons||[]).length > 0;
-  chrome.innerHTML = `<div class="ticker" aria-hidden="true"><div class="ticker-inner">${strip}${strip}</div></div>`
-    + (hasSeasons ? `<div class="topnav"><button class="btn-ghost" onclick="openArchive()">&#9636; past seasons</button></div>` : "");
+  chrome.innerHTML = `<div class="ticker" aria-hidden="true"><div class="ticker-inner">${strip}${strip}</div></div>`;
 }
 
 // ---------- navigation ----------
@@ -335,39 +379,97 @@ function render() {
   const closed = board.filter(m => effectiveStatus(m) === "closed");
   const resolved = board.filter(m => effectiveStatus(m) === "resolved");
   const lb = leaderboard(board);
-  const mine = lb.rows.find(r => r.slug === ME);
-  const myRank = mine && mine.avg !== null ? lb.rows.indexOf(mine) + 1 : null;
-  const champ = lb.rows[0] && lb.rows[0].avg !== null ? lb.rows[0].display_name : null;
-  const players = lb.rows.length;
 
-  let html = `<div class="whoami">forecasting as <b>${esc(me.display_name)}</b> <span class="linkish" onclick="switchUser()">not you?</span></div>`;
-
-  const sBrier = stat("your avg brier", mine && mine.avg!==null ? mine.avg.toFixed(2) : "&mdash;", "lower is better");
-  const sRank = stat("season rank", myRank ? "#"+myRank : "&mdash;", players ? "of "+players : "no players yet");
-  const s3 = archived ? stat("markets", resolved.length+"/"+board.length, "resolved") : stat("open markets", open.length, "forecast all to qualify");
-  const s4 = archived ? stat("winner", champ ? esc(champ) : "&mdash;", myRank ? "you placed #"+myRank : "you did not play") : stat("prize pool", "1 spin", "of the wheel");
-  html += `<div class="stats">${sBrier}${sRank}${s3}${s4}</div>`;
-
+  // ----- main column: markets -----
+  let main = "";
   if (!archived && me.role === "oracle") {
-    html += `<div class="oracle-note">You are <b>the Oracle</b>. Create, close, and resolve markets directly in the Google Sheet; the site updates on next load.</div>`;
+    main += `<div class="oracle-note">You are <b>the Oracle</b>. Create, close, and resolve markets directly in the Google Sheet; the site updates on next load.</div>`;
   }
-
   if (archived) {
     const unresolved = [...open, ...closed];
-    if (unresolved.length) html += section("Unresolved at archive") + unresolved.map(m => positionCard(m, "unresolved")).join("");
-    if (resolved.length) html += section("Resolved") + resolved.map(resolvedCard).join("");
-    if (!board.length) html += `<div class="notice">This season has no recorded markets.</div>`;
+    if (unresolved.length) main += section("Unresolved at archive") + unresolved.map(m => positionCard(m, "unresolved")).join("");
+    if (resolved.length) main += section("Resolved") + resolved.map(resolvedCard).join("");
+    if (!board.length) main += `<div class="notice">This season has no recorded markets.</div>`;
   } else {
-    html += section("Open markets");
-    html += open.length ? open.map(marketCard).join("") : `<div class="notice">No open markets. The Oracle is deliberating.</div>`;
-    if (closed.length) html += section("Closed &middot; awaiting resolution") + closed.map(m => positionCard(m, "closed")).join("");
-    if (resolved.length) html += section("Resolved") + resolved.map(resolvedCard).join("");
+    main += section("Open markets");
+    main += open.length ? open.map(marketCard).join("") : `<div class="notice">No open markets. The Oracle is deliberating.</div>`;
+    if (closed.length) main += section("Closed &middot; awaiting resolution") + closed.map(m => positionCard(m, "closed")).join("");
+    if (resolved.length) main += section("Resolved") + resolved.map(resolvedCard).join("");
   }
 
-  html += section(archived ? "Final standings" : "Season leaderboard")
-    + `<div class="card" style="padding:8px 20px">` + lb.rows.map((r,i) => lbRow(r,i,lb.badges)).join("") + `</div>`;
+  // ----- rail: profile + leaderboard -----
+  const rail = profileCard(me, open, lb, archived) + leaderboardCard(lb, archived) + prizesCard();
 
-  $app.innerHTML = html;
+  const who = `<div class="whoami">forecasting as <b>${esc(me.display_name)}</b> <span class="linkish" onclick="switchUser()">not you?</span></div>`;
+  $app.innerHTML = who + `<div class="layout"><aside class="rail">${rail}</aside><main class="main">${main}</main></div>`;
+}
+
+function profileCard(me, open, lb, archived) {
+  const mine = lb.rows.find(r => r.slug === ME);
+  const myRank = mine && mine.avg !== null ? lb.rows.indexOf(mine) + 1 : null;
+  const players = lb.rows.length;
+  const played = lb.rows.some(r => r.slug === ME);
+
+  // this season / this archive
+  const sLabel = archived ? esc((seasonById(viewSeasonId)||{}).label || "this season") : "this season";
+  const brier = mine && mine.avg !== null ? mine.avg.toFixed(2) : "&mdash;";
+  let rankVal;
+  if (myRank) rankVal = "#" + myRank;
+  else if (played) rankVal = "awaiting";
+  else rankVal = archived ? "&mdash;" : "&mdash;";
+  const rankLabel = archived ? "placement" : "rank";
+
+  let thirdStat;
+  if (archived) {
+    thirdStat = `<div><div class="pg-v">${players}</div><div class="pg-l">players</div></div>`;
+  } else {
+    const lockedOpen = open.filter(m => ME in forecastsFor(m.id)).length;
+    thirdStat = `<div><div class="pg-v">${lockedOpen}/${open.length}</div><div class="pg-l">locked</div></div>`;
+  }
+
+  // lifetime
+  const life = personStats(ME, allLiveMarkets());
+  const lifeBrier = life.avg !== null ? life.avg.toFixed(2) : "&mdash;";
+  const seasons = seasonsPlayedBy(ME);
+
+  return `<div class="card profile">
+    <div class="prof-h">your performance</div>
+    <div class="prof-group">
+      <div class="pg-label">${sLabel}</div>
+      <div class="pg-stats">
+        <div><div class="pg-v">${brier}</div><div class="pg-l">avg brier</div></div>
+        <div><div class="pg-v">${rankVal}${myRank?`<span style="font-size:12px;color:var(--faint)"> of ${players}</span>`:""}</div><div class="pg-l">${rankLabel}</div></div>
+        ${thirdStat}
+      </div>
+    </div>
+    <div class="prof-group">
+      <div class="pg-label">lifetime</div>
+      <div class="pg-stats">
+        <div><div class="pg-v">${lifeBrier}</div><div class="pg-l">avg brier</div></div>
+        <div><div class="pg-v">${seasons}</div><div class="pg-l">seasons</div></div>
+        <div><div class="pg-v">${life.n}</div><div class="pg-l">resolved</div></div>
+      </div>
+    </div>
+    <button class="btn-ghost prof-archive" onclick="openArchive()">&#9636; past seasons</button>
+  </div>`;
+}
+
+function leaderboardCard(lb, archived) {
+  const title = archived ? "final standings" : "leaderboard";
+  if (!lb.rows.length) return `<div class="rail-h">${title}</div><div class="card"><div class="lb-empty">no forecasts yet</div></div>`;
+  return `<div class="rail-h">${title}</div><div class="card" style="padding:6px 16px">` + lb.rows.map((r,i) => lbRow(r,i,lb.badges)).join("") + `</div>`;
+}
+
+function prizesCard() {
+  const rows = (DATA.prizes||[]).filter(p => (p.season_id||"") === viewSeasonId)
+    .sort((a,b) => Number(a.place) - Number(b.place));
+  if (!rows.length) return "";
+  const ord = n => ({1:"1st",2:"2nd",3:"3rd"}[n] || (n+"th"));
+  return `<div class="rail-h">prizes</div><div class="card prize">` + rows.map(p => `
+    <div class="prize-row">
+      <span class="prize-place">${esc(ord(Number(p.place)))}</span>
+      <div><div class="prize-title">${esc(p.title)}</div>${p.detail ? `<div class="prize-detail">${esc(p.detail)}</div>` : ""}</div>
+    </div>`).join("") + `</div>`;
 }
 
 function renderArchivePanel() {
