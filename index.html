@@ -55,6 +55,7 @@
   .ticker .sym { color: var(--ink); font-weight: 500; }
   .ticker .up { color: var(--yes); }
   .ticker .down { color: var(--no); }
+  .ticker .pending { color: var(--accent); }
   .ticker .sep { color: var(--faint); margin: 0 14px; }
   @keyframes crawl { from { transform: translateX(0); } to { transform: translateX(-50%); } }
   @media (prefers-reduced-motion: reduce) { .ticker-inner { animation: none; } }
@@ -91,6 +92,22 @@
 
   .forecast-row { display: flex; align-items: center; gap: 14px; margin-top: 18px; }
   .forecast-row label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); white-space: nowrap; }
+  .scale { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); margin-top: 6px; }
+
+  .help-btn { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; transition: border-color 0.15s ease, color 0.15s ease; }
+  .help-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .modal-bg { position: fixed; inset: 0; background: rgba(10,11,13,0.72); display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px; z-index: 50; overflow-y: auto; }
+  .modal { background: var(--card); border: 1px solid var(--line-strong); border-radius: 14px; max-width: 560px; width: 100%; padding: 26px 28px 30px; }
+  .modal h3 { font-family: var(--serif); font-size: 26px; font-weight: 400; letter-spacing: 0.02em; margin-bottom: 4px; }
+  .modal .m-sub { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+  .modal h4 { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 20px 0 8px; }
+  .modal p { font-size: 14px; color: var(--ink); margin-bottom: 10px; line-height: 1.6; }
+  .modal .ex { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font-size: 13px; color: var(--muted); margin: 6px 0; }
+  .modal .ex b { color: var(--ink); font-weight: 600; }
+  .modal .bonus { border-top: 1px solid var(--line); margin-top: 22px; padding-top: 6px; }
+  .modal .formula { font-family: var(--mono); font-size: 13px; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; margin: 8px 0; }
+  .modal-close { display: block; margin: 22px 0 0 auto; font: 500 13px var(--sans); padding: 9px 18px; border-radius: 8px; border: 1px solid var(--accent-strong); background: var(--accent-strong); color: #fff; cursor: pointer; }
+  .modal-close:hover { background: var(--accent-hover); }
   input[type=range] { flex: 1; accent-color: var(--accent); height: 20px; }
   .prob { font-family: var(--mono); font-size: 24px; font-weight: 500; min-width: 60px; text-align: right; color: var(--accent); }
 
@@ -211,10 +228,14 @@
       <div class="brand">MateoMarkets</div>
       <div class="tagline">The world&rsquo;s leading Mateo outcomes exchange</div>
     </div>
-    <div class="est">est. 2026<br>invite only</div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+      <div class="est">est. 2026<br>invite only</div>
+      <button class="help-btn" onclick="openHelp()">? how it works</button>
+    </div>
   </header>
   <div id="chrome"></div>
   <div id="app"><div class="notice" style="margin-top:20px">Opening the exchange&hellip; (first load can take a few seconds)</div></div>
+  <div id="modal-root"></div>
   <footer>all forecasts final &middot; lower brier is better<br>past performance of mateo is not indicative of future mateo</footer>
 </div>
 
@@ -343,11 +364,15 @@ function lbRow(r,i,badges) {
 // ---------- ticker / chrome ----------
 function tickerInner(markets) {
   if (!markets || !markets.length) return `<span class="sym">MTO</span> season opening soon &middot; no live quotes <span class="sep">&#9670;</span>`;
+  const archived = isArchivedView();
   const items = markets.map(m => {
     const sym = `<span class="sym">${esc(symbol(m))}</span>`;
     if (m.status === "resolved" && m.outcome) return `${sym} settled <span class="${m.outcome==="YES"?"up":"down"}">${esc(m.outcome)}</span>`;
     const avg = crowdAvg(m.id);
-    if (avg === null) return `${sym} no quotes yet`;
+    if (avg === null) return `${sym} <span class="pending">${archived ? "no quotes" : "lock to reveal"}</span>`;
+    // Live season: hide consensus until the viewer locks. Archived season: nothing to protect, show it.
+    const iLocked = ME && (ME in forecastsFor(m.id));
+    if (!archived && !iLocked) return `${sym} <span class="pending">lock to reveal</span>`;
     return `${sym} <span class="${avg>=50?"up":"down"}">${avg}% yes</span>${effectiveStatus(m)==="closed"?" &middot; closed":""}`;
   });
   return items.join('<span class="sep">&#9670;</span>') + '<span class="sep">&#9670;</span>';
@@ -371,6 +396,43 @@ function renderChrome() {
 }
 
 // ---------- navigation ----------
+function openHelp() {
+  document.getElementById("modal-root").innerHTML = `
+    <div class="modal-bg" onclick="if(event.target===this)closeHelp()">
+      <div class="modal" role="dialog" aria-label="How it works">
+        <h3>How MateoMarkets works</h3>
+        <div class="m-sub">A friendly forecasting game about the outcomes of one (1) Mateo.</div>
+
+        <h4>The idea</h4>
+        <p>Each market is a yes-or-no question about Mateo's life. Your goal is to predict how likely it is to happen, expressed as a percentage from 1 to 99.</p>
+
+        <h4>Reading the slider</h4>
+        <p>The number is always your chance of <b>YES</b>. So <b>80% YES</b> means you think it's very likely to happen; <b>15% YES</b> means you think it probably won't. Drag right for more likely, left for less likely. There's no separate "NO" number, just a low YES.</p>
+
+        <h4>Locking</h4>
+        <p>You get one forecast per market, and it's final once you lock it. Forecasting closes a few days after a market opens. After you lock, you'll see what the group thinks.</p>
+
+        <h4>Scoring: the Brier score</h4>
+        <p>You're scored on accuracy <i>and</i> honesty about your confidence. <b>Lower is better.</b> Very high or very low percentages reflect high confidence, which is rewarded more when you're right and punished more when you're wrong.</p>
+        <div class="ex"><b>Say 90% YES and it happens:</b> excellent, small Brier.</div>
+        <div class="ex"><b>Say 90% YES and it doesn't:</b> yikes, big Brier.</div>
+        <div class="ex"><b>Say 50%:</b> middling no matter what.</div>
+        <p>Your season score is the average across all markets, so calibration over many questions is what wins.</p>
+        <p>To qualify for prizes you must forecast <b>every</b> market this season, so you can't cherry-pick only the ones you're most sure about.</p>
+
+        <div class="bonus">
+          <h4>For the mathematically inclined</h4>
+          <p>The Brier score is the squared error between your probability and the outcome (YES = 1, NO = 0):</p>
+          <div class="formula">score = (p &minus; outcome)&sup2;</div>
+          <p>where p is your forecast as a decimal. A 90% YES on a YES scores (0.9 &minus; 1)&sup2; = 0.01; on a NO it scores (0.9 &minus; 0)&sup2; = 0.81. Your leaderboard number is the mean of these across your resolved markets. 0 is perfect, 0.25 is what you get always guessing 50%.</p>
+        </div>
+
+        <button class="modal-close" onclick="closeHelp()">Got it</button>
+      </div>
+    </div>`;
+}
+function closeHelp() { document.getElementById("modal-root").innerHTML = ""; }
+
 function openArchive() { showArchive = true; render(); window.scrollTo(0,0); }
 function viewSeason(id) { showArchive = false; viewSeasonId = id; render(); window.scrollTo(0,0); }
 function backToLive() { showArchive = false; const cs = currentSeason(); viewSeasonId = cs ? cs.season_id : null; render(); window.scrollTo(0,0); }
@@ -529,13 +591,14 @@ function marketCard(m) {
   const mineP = fs[ME];
   let body;
   if (mineP !== undefined) {
-    body = `<div class="locked-line">your forecast: <span class="me">${mineP}%</span> &middot; locked</div>` + consensusHtml(m.id, true);
+    body = `<div class="locked-line">your forecast: <span class="me">${mineP}% YES</span> &middot; locked</div>` + consensusHtml(m.id, true);
   } else {
     body = `<div class="forecast-row">
         <label for="s-${esc(m.id)}">your forecast</label>
-        <input type="range" id="s-${esc(m.id)}" min="1" max="99" step="1" value="50" oninput="document.getElementById('p-${esc(m.id)}').textContent=this.value+'%'">
-        <span class="prob" id="p-${esc(m.id)}">50%</span>
+        <input type="range" id="s-${esc(m.id)}" min="1" max="99" step="1" value="50" oninput="document.getElementById('p-${esc(m.id)}').textContent=this.value+'% YES'">
+        <span class="prob" id="p-${esc(m.id)}">50% YES</span>
       </div>
+      <div class="scale"><span>NO &larr; less likely</span><span>more likely &rarr; YES</span></div>
       <div class="actions">
         <button class="lock" id="b-${esc(m.id)}" onclick="lockForecast('${esc(m.id)}')">Lock forecast</button>
         <span class="hint">one lock, final &middot; consensus revealed after</span>
@@ -580,7 +643,7 @@ async function lockForecast(marketId) {
   const btn = document.getElementById("b-" + marketId);
   const errEl = document.getElementById("e-" + marketId);
   const p = parseInt(slider.value, 10);
-  if (!confirm(`Lock ${p}% on this market? Forecasts are final.`)) return;
+  if (!confirm(`Lock ${p}% YES on this market? Forecasts are final.`)) return;
   btn.disabled = true; slider.disabled = true; btn.textContent = "Locking\u2026"; errEl.textContent = "";
   try {
     const res = await fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -612,6 +675,7 @@ async function init() {
   render();
 }
 
+document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeHelp(); });
 init();
 </script>
 </body>
