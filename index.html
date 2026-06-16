@@ -82,9 +82,9 @@
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; margin-bottom: 12px; transition: border-color 0.15s ease, background 0.15s ease; }
   .card:hover { border-color: var(--line-strong); background: var(--card-hover); }
   .card .top { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
-  .q { font-family: var(--serif); font-size: 20px; line-height: 1.4; letter-spacing: 0.03em; word-spacing: 0.06em; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .q { font-family: var(--serif); font-size: 20px; line-height: 1.4; letter-spacing: 0.03em; word-spacing: 0.06em; flex: 1 1 60%; min-width: 220px; overflow-wrap: break-word; }
   .symline { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
-  .chip { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; white-space: nowrap; background: #2c2e35; color: var(--muted); border: 1px solid var(--line); flex-shrink: 0; }
+  .chip { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; background: #2c2e35; color: var(--muted); border: 1px solid var(--line); flex: 0 1 auto; max-width: 45%; text-align: right; }
   .chip.yes { background: var(--yes-tint); color: var(--yes); border-color: transparent; }
   .chip.no { background: var(--no-tint); color: var(--no); border-color: transparent; }
   .criteria { color: var(--muted); font-size: 13px; margin-top: 8px; }
@@ -253,7 +253,8 @@ function isArchivedView() { const cs = currentSeason(); return !!viewSeasonId &&
 function effectiveStatus(m) {
   if (m.status === "resolved") return "resolved";
   if (m.status === "closed") return "closed";
-  if (m.close_date && todayStr() > m.close_date) return "closed";
+  const cd = fmtDate(m.close_date);
+  if (cd && todayStr() > cd) return "closed";
   return "open";
 }
 function forecastsFor(marketId) {
@@ -306,6 +307,15 @@ function initials(name) { return name.trim().split(/\s+/).map(w => w[0]).join(""
 function displayName(slug) { const p = DATA.people.find(x => x.slug === slug); return p ? p.display_name : slug; }
 function invitedCount() { return DATA.people.filter(p => (p.role||"") !== "oracle").length; }
 function marketById(id) { return DATA.markets.find(m => m.id === id); }
+function fmtDate(s) {
+  s = String(s || "").trim();
+  if (!s) return "";
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);   // already YYYY-MM-DD
+  if (m) return m[1] + "-" + m[2] + "-" + m[3];
+  const d = new Date(s);                            // a full date string from the sheet
+  if (!isNaN(d)) return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  return s;
+}
 function allLiveMarkets() { return DATA.markets.filter(m => !isVoid(m)); }
 function seasonsPlayedBy(slug) {
   const ids = new Set();
@@ -533,7 +543,7 @@ function marketCard(m) {
       </div>`;
   }
   return `<div class="card"><div class="symline">${esc(symbol(m))}</div>
-    <div class="top"><div class="q">${esc(m.question)}</div><span class="chip">closes ${esc(m.close_date)}</span></div>
+    <div class="top"><div class="q">${esc(m.question)}</div><span class="chip">closes ${esc(fmtDate(m.close_date))}</span></div>
     <div class="criteria">${esc(m.criteria)}</div>${body}</div>`;
 }
 
