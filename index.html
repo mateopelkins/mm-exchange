@@ -90,9 +90,10 @@
   .chip.no { background: var(--no-tint); color: var(--no); border-color: transparent; }
   .criteria { color: var(--muted); font-size: 13px; margin-top: 8px; }
 
-  .forecast-row { display: flex; align-items: center; gap: 14px; margin-top: 18px; }
-  .forecast-row label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); white-space: nowrap; }
-  .scale { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); margin-top: 6px; }
+  .forecast-row { display: flex; align-items: flex-start; gap: 14px; margin-top: 18px; }
+  .forecast-row label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); white-space: nowrap; padding-top: 6px; }
+  .slider-wrap { flex: 1; min-width: 0; }
+  .slider-ends { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; color: var(--faint); margin-top: -2px; padding: 0 2px; }
 
   .help-btn { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; transition: border-color 0.15s ease, color 0.15s ease; }
   .help-btn:hover { border-color: var(--accent); color: var(--accent); }
@@ -108,8 +109,8 @@
   .modal .formula { font-family: var(--mono); font-size: 13px; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; margin: 8px 0; }
   .modal-close { display: block; margin: 22px 0 0 auto; font: 500 13px var(--sans); padding: 9px 18px; border-radius: 8px; border: 1px solid var(--accent-strong); background: var(--accent-strong); color: #fff; cursor: pointer; }
   .modal-close:hover { background: var(--accent-hover); }
-  input[type=range] { flex: 1; accent-color: var(--accent); height: 20px; }
-  .prob { font-family: var(--mono); font-size: 24px; font-weight: 500; min-width: 60px; text-align: right; color: var(--accent); }
+  input[type=range] { width: 100%; accent-color: var(--accent); height: 20px; }
+  .prob { font-family: var(--mono); font-size: 24px; font-weight: 500; min-width: 60px; text-align: right; color: var(--accent); padding-top: 2px; }
 
   .actions { display: flex; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
   button.lock { font: 500 13px var(--sans); padding: 9px 18px; border-radius: 8px; border: 1px solid var(--accent-strong); background: var(--accent-strong); color: #fff; cursor: pointer; transition: background 0.15s ease; }
@@ -120,7 +121,10 @@
 
   .locked-line { margin-top: 16px; font-size: 13px; color: var(--muted); }
   .locked-line .me { font-family: var(--mono); color: var(--accent); font-weight: 500; }
-  .bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 10px; background: var(--no-tint); }
+  .bar { position: relative; display: flex; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 10px; background: var(--no-tint); }
+  .you-tick { position: absolute; top: 0; bottom: 0; width: 2px; background: #f4f1ea; transform: translateX(-1px); z-index: 2; }
+  .you-mid { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); font-weight: 500; }
+  .you-dot { width: 9px; height: 2px; background: #f4f1ea; box-shadow: 0 0 0 1px rgba(20,21,23,0.45); border-radius: 1px; flex-shrink: 0; }
   .bar .fill { height: 100%; background: var(--yes); }
   .bar-caption { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 6px; font-family: var(--mono); letter-spacing: 0.04em; }
   .bar-caption .y { color: var(--yes); }
@@ -178,6 +182,12 @@
   .prof-archive { margin-top: 16px; width: 100%; }
 
   .lb-empty { font-size: 13px; color: var(--faint); text-align: center; padding: 10px 0; }
+  .lb-row.mine { background: var(--accent-tint); border-radius: 8px; margin: 0 -8px; padding-left: 10px; padding-right: 10px; border-bottom: none; }
+  .lb-row.mine .lb-name, .lb-row.mine .lb-rank, .lb-row.mine .lb-score { color: var(--accent); }
+  .lb-gap { text-align: center; color: var(--faint); font-family: var(--mono); font-size: 12px; letter-spacing: 0.2em; padding: 2px 0; }
+  .lb-full-btn { width: 100%; margin-top: 10px; }
+  .lb-modal { display: flex; flex-direction: column; }
+  .lb-modal .lb-row:last-child { border-bottom: none; }
 
   .prize { padding: 4px 16px; }
   .prize-row { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
@@ -207,8 +217,8 @@
     .q { font-size: 19px; }
     .chip { font-size: 9px; padding: 3px 8px; }
     .symline { font-size: 9px; }
-    .forecast-row { flex-wrap: wrap; gap: 8px 12px; margin-top: 16px; }
-    .forecast-row label { flex-basis: 100%; }
+    .forecast-row { flex-wrap: wrap; gap: 8px 12px; margin-top: 16px; align-items: center; }
+    .forecast-row label { flex-basis: 100%; padding-top: 0; }
     .prob { font-size: 22px; }
     .actions .lock { width: 100%; }
     .btn-ghost { padding: 9px 14px; }
@@ -351,9 +361,10 @@ function seasonsPlayedBy(slug) {
 // ---------- small html helpers ----------
 const stat = (label,value,sub) => `<div class="stat"><div class="label">${label}</div><div class="value">${value}</div><div class="sub">${sub}</div></div>`;
 const section = (t) => `<h2 class="section">${t}</h2>`;
-function lbRow(r,i,badges) {
-  return `<div class="lb-row${i===0 && r.avg!==null ? " first" : ""}">
-    <span class="lb-rank">${i+1}</span>
+function lbRow(r, rank, badges) {
+  const mine = r.slug === ME ? " mine" : "";
+  return `<div class="lb-row${rank===1 && r.avg!==null ? " first" : ""}${mine}">
+    <span class="lb-rank">${rank}</span>
     <span class="avatar">${esc(initials(r.display_name))}</span>
     <span class="lb-name">${esc(r.display_name)}${r.slug===ME ? " (you)" : ""}</span>
     ${badges[r.slug] ? `<span class="badge">${esc(badges[r.slug])}</span>` : ""}
@@ -401,7 +412,7 @@ function openHelp() {
     <div class="modal-bg" onclick="if(event.target===this)closeHelp()">
       <div class="modal" role="dialog" aria-label="How it works">
         <h3>How MateoMarkets works</h3>
-        <div class="m-sub">A friendly forecasting game about the outcomes of one (1) Mateo.</div>
+        <div class="m-sub">A prediction market for the outcomes of one (1) Mateo.</div>
 
         <h4>The idea</h4>
         <p>Each market is a yes-or-no question about Mateo's life. Your goal is to predict how likely it is to happen, expressed as a percentage from 1 to 99.</p>
@@ -410,18 +421,18 @@ function openHelp() {
         <p>The number is always your chance of <b>YES</b>. So <b>80% YES</b> means you think it's very likely to happen; <b>15% YES</b> means you think it probably won't. Drag right for more likely, left for less likely. There's no separate "NO" number, just a low YES.</p>
 
         <h4>Locking</h4>
-        <p>You get one forecast per market, and it's final once you lock it. Forecasting closes a few days after a market opens. After you lock, you'll see what the group thinks.</p>
+        <p>You get one forecast per market, and it's final once you lock it. Forecasting closes a few days after a market opens. After you lock, you'll see what the market thinks.</p>
 
         <h4>Scoring: the Brier score</h4>
-        <p>You're scored on accuracy <i>and</i> honesty about your confidence. <b>Lower is better.</b> Very high or very low percentages reflect high confidence, which is rewarded more when you're right and punished more when you're wrong.</p>
+        <p>You're scored on accuracy and confidence. <b>Lower is better.</b> Very high or very low percentages reflect high confidence, which is rewarded more when you're right and punished more when you're wrong.</p>
         <div class="ex"><b>Say 90% YES and it happens:</b> excellent, small Brier.</div>
         <div class="ex"><b>Say 90% YES and it doesn't:</b> yikes, big Brier.</div>
         <div class="ex"><b>Say 50%:</b> middling no matter what.</div>
-        <p>Your season score is the average across all markets, so calibration over many questions is what wins.</p>
-        <p>To qualify for prizes you must forecast <b>every</b> market this season, so you can't cherry-pick only the ones you're most sure about.</p>
+        <p>Your season score is the average across all markets, so it rewards being well calibrated across many questions.</p>
+        <p>To qualify for prizes you must forecast <b>every</b> market this season, which keeps everyone's score based on a large enough sample of predictions.</p>
 
         <div class="bonus">
-          <h4>For the mathematically inclined</h4>
+          <h4>Technical details</h4>
           <p>The Brier score is the squared error between your probability and the outcome (YES = 1, NO = 0):</p>
           <div class="formula">score = (p &minus; outcome)&sup2;</div>
           <p>where p is your forecast as a decimal. A 90% YES on a YES scores (0.9 &minus; 1)&sup2; = 0.01; on a NO it scores (0.9 &minus; 0)&sup2; = 0.81. Your leaderboard number is the mean of these across your resolved markets. 0 is perfect, 0.25 is what you get always guessing 50%.</p>
@@ -529,8 +540,41 @@ function profileCard(me, open, lb, archived) {
 function leaderboardCard(lb, archived) {
   const title = archived ? "final standings" : "leaderboard";
   if (!lb.rows.length) return `<div class="rail-h">${title}</div><div class="card"><div class="lb-empty">no forecasts yet</div></div>`;
-  return `<div class="rail-h">${title}</div><div class="card" style="padding:6px 16px">` + lb.rows.map((r,i) => lbRow(r,i,lb.badges)).join("") + `</div>`;
+
+  const top = lb.rows.slice(0, 3);
+  let rowsHtml = top.map((r, i) => lbRow(r, i + 1, lb.badges)).join("");
+
+  // If the viewer isn't in the top 3, append their own row below a divider.
+  const myIndex = lb.rows.findIndex(r => r.slug === ME);
+  if (myIndex >= 3) {
+    rowsHtml += `<div class="lb-gap">&middot;&middot;&middot;</div>` + lbRow(lb.rows[myIndex], myIndex + 1, lb.badges);
+  }
+
+  const moreBtn = lb.rows.length > 3
+    ? `<button class="btn-ghost lb-full-btn" onclick="openLeaderboard()">full leaderboard</button>`
+    : "";
+
+  return `<div class="rail-h">${title}</div><div class="card" style="padding:6px 16px">${rowsHtml}</div>${moreBtn}`;
 }
+
+function openLeaderboard() {
+  const board = boardMarkets();
+  const lb = leaderboard(board);
+  const archived = isArchivedView();
+  const title = archived ? "Final standings" : "Leaderboard";
+  const sub = archived ? esc((seasonById(viewSeasonId)||{}).label || "") : "this season";
+  const rows = lb.rows.map((r, i) => lbRow(r, i + 1, lb.badges)).join("");
+  document.getElementById("modal-root").innerHTML = `
+    <div class="modal-bg" onclick="if(event.target===this)closeLeaderboard()">
+      <div class="modal" role="dialog" aria-label="${title}">
+        <h3>${title}</h3>
+        <div class="m-sub">${sub}</div>
+        <div class="lb-modal">${rows}</div>
+        <button class="modal-close" onclick="closeLeaderboard()">Close</button>
+      </div>
+    </div>`;
+}
+function closeLeaderboard() { document.getElementById("modal-root").innerHTML = ""; }
 
 function prizesCard() {
   const rows = (DATA.prizes||[]).filter(p => (p.season_id||"") === viewSeasonId)
@@ -575,15 +619,19 @@ function renderArchivePanel() {
     + section("Seasons") + `<div class="season-grid">${cards}</div>`;
 }
 
-function consensusHtml(marketId, showLocked) {
+function consensusHtml(marketId, showLocked, myPick) {
   const fs = forecastsFor(marketId);
   const vals = Object.values(fs);
   if (!vals.length) return `<div class="bar-caption"><span>no forecasts</span></div>`;
   const avg = Math.round(vals.reduce((a,b)=>a+b,0) / vals.length);
-  const caption = showLocked
-    ? `<span class="y">yes ${avg}</span><span>${vals.length} of ${invitedCount()} locked</span><span class="n">no ${100-avg}</span>`
-    : `<span class="y">yes ${avg}</span><span class="n">no ${100-avg}</span>`;
-  return `<div class="bar"><div class="fill" style="width:${avg}%"></div></div><div class="bar-caption">${caption}</div>`;
+  const hasPick = (myPick !== undefined && myPick !== null);
+  const tick = hasPick ? `<div class="you-tick" style="left:${myPick}%"></div>` : "";
+  let mid;
+  if (hasPick) mid = `<span class="you-mid"><span class="you-dot"></span>you ${myPick}%</span>`;
+  else if (showLocked) mid = `<span>${vals.length} of ${invitedCount()} locked</span>`;
+  else mid = `<span></span>`;
+  const caption = `<span class="y">yes ${avg}</span>${mid}<span class="n">no ${100-avg}</span>`;
+  return `<div class="bar">${tick}<div class="fill" style="width:${avg}%"></div></div><div class="bar-caption">${caption}</div>`;
 }
 
 function marketCard(m) {
@@ -591,17 +639,19 @@ function marketCard(m) {
   const mineP = fs[ME];
   let body;
   if (mineP !== undefined) {
-    body = `<div class="locked-line">your forecast: <span class="me">${mineP}% YES</span> &middot; locked</div>` + consensusHtml(m.id, true);
+    body = consensusHtml(m.id, true, mineP);
   } else {
     body = `<div class="forecast-row">
         <label for="s-${esc(m.id)}">your forecast</label>
-        <input type="range" id="s-${esc(m.id)}" min="1" max="99" step="1" value="50" oninput="document.getElementById('p-${esc(m.id)}').textContent=this.value+'% YES'">
-        <span class="prob" id="p-${esc(m.id)}">50% YES</span>
+        <div class="slider-wrap">
+          <input type="range" id="s-${esc(m.id)}" min="1" max="99" step="1" value="50" oninput="document.getElementById('p-${esc(m.id)}').textContent=this.value+'%'">
+          <div class="slider-ends"><span>less likely</span><span>more likely</span></div>
+        </div>
+        <span class="prob" id="p-${esc(m.id)}">50%</span>
       </div>
-      <div class="scale"><span>NO &larr; less likely</span><span>more likely &rarr; YES</span></div>
       <div class="actions">
         <button class="lock" id="b-${esc(m.id)}" onclick="lockForecast('${esc(m.id)}')">Lock forecast</button>
-        <span class="hint">one lock, final &middot; consensus revealed after</span>
+        <span class="hint">consensus revealed after prediction</span>
         <span class="err" id="e-${esc(m.id)}"></span>
       </div>`;
   }
@@ -616,8 +666,8 @@ function positionCard(m, chip) {
   return `<div class="card"><div class="symline">${esc(symbol(m))}</div>
     <div class="top"><div class="q">${esc(m.question)}</div><span class="chip">${esc(chip||"closed")}</span></div>
     <div class="criteria">${esc(m.criteria)}</div>
-    ${mineP!==undefined ? `<div class="locked-line">your forecast: <span class="me">${mineP}%</span></div>` : `<div class="locked-line">you did not forecast this market</div>`}
-    ${consensusHtml(m.id, false)}</div>`;
+    ${mineP===undefined ? `<div class="locked-line">you did not forecast this market</div>` : ""}
+    ${consensusHtml(m.id, false, mineP)}</div>`;
 }
 
 function resolvedCard(m) {
@@ -675,7 +725,7 @@ async function init() {
   render();
 }
 
-document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeHelp(); });
+document.addEventListener("keydown", function(e){ if (e.key === "Escape") { closeHelp(); closeLeaderboard(); } });
 init();
 </script>
 </body>
