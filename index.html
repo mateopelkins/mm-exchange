@@ -227,7 +227,11 @@
     .season-grid { grid-template-columns: 1fr; }
     h2.section { margin: 26px 0 10px; }
     table.results td, table.results th { padding: 6px 6px; }
-    .masthead { gap: 10px; }
+    .masthead { gap: 10px; position: relative; }
+    .masthead > div:last-child { position: absolute; top: 0; right: 0; }
+    .masthead > div:first-child { padding-right: 118px; }
+    .est { font-size: 9px; letter-spacing: 0.12em; }
+    .help-btn { padding: 5px 9px; }
     .ticker-inner { font-size: 10px; padding: 6px 0; }
     .ticker .sep { margin: 0 10px; }
   }
