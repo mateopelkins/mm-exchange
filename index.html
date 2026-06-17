@@ -67,6 +67,93 @@
   .archive-banner { position: sticky; top: 8px; z-index: 5; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; background: #2e2a1d; border: 1px solid rgba(205,162,63,0.45); border-radius: 10px; padding: 11px 15px; margin: 10px 0 20px; }
   .archive-banner b { font-family: var(--serif); font-weight: 400; font-size: 19px; }
   .ab-tag { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #cda23f; border: 1px solid #cda23f; border-radius: 4px; padding: 2px 8px; margin-right: 8px; }
+  .sample-banner { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: #241f3a; border: 1px solid rgba(154,140,245,0.45); border-radius: 10px; padding: 11px 15px; margin: 0 0 14px; font-size: 13px; color: var(--muted); }
+  .sb-tag { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent); border-radius: 4px; padding: 2px 8px; }
+
+  /* analytics */
+  .scope-bar { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; }
+  .scope-tab { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; cursor: pointer; }
+  .scope-tab.on { color: var(--accent); border-color: var(--accent); background: var(--accent-tint); }
+  .chart-card { padding: 18px 18px 14px; overflow: hidden; }
+  .chart-svg { width: 100%; height: auto; display: block; }
+  .chart-note { font-size: 12px; color: var(--faint); margin-top: 10px; line-height: 1.5; }
+  .dp-block { padding: 8px 0 4px; border-bottom: 1px solid var(--line); }
+  .dp-block:last-of-type { border-bottom: none; }
+  .dp-q { font-family: var(--serif); font-size: 15px; color: var(--ink); margin-bottom: 2px; }
+  .dp-svg { width: 100%; height: auto; display: block; }
+  .disag-list { display: flex; flex-direction: column; gap: 8px; }
+  .disag-row { display: flex; align-items: center; gap: 10px; }
+  .disag-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; color: var(--muted); width: 110px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .disag-track { flex: 1; height: 8px; background: var(--no-tint); border-radius: 4px; overflow: hidden; }
+  .disag-fill { height: 100%; background: var(--accent); }
+  .disag-val { font-family: var(--mono); font-size: 11px; color: var(--ink); width: 42px; text-align: right; }
+  .player-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .player-chip { font-family: var(--sans); font-size: 13px; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; cursor: pointer; }
+  .player-chip.on { border-color: var(--accent); color: var(--accent); background: var(--accent-tint); }
+  .player-panel { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .pp-head-row { display: flex; align-items: baseline; justify-content: space-between; }
+  .pp-name { font-family: var(--serif); font-size: 24px; font-weight: 400; }
+  .pp-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px; }
+  .pp-chart-h { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  @media (max-width: 640px) { .pp-charts { grid-template-columns: 1fr; } }
+  /* pass-two party analytics */
+  .h2h-wrap { overflow-x: auto; }
+  .h2h { border-collapse: collapse; font-family: var(--mono); font-size: 12px; }
+  .h2h th, .h2h td { padding: 7px 9px; text-align: center; border: 1px solid var(--line); }
+  .h2h .h2h-row { text-align: right; font-family: var(--sans); font-weight: 600; cursor: pointer; white-space: nowrap; color: var(--ink); }
+  .h2h .h2h-row:hover { color: var(--accent); }
+  .h2h .h2h-col { color: var(--faint); }
+  .h2h-self { color: var(--line-strong); }
+  .h2h-na { color: var(--faint); }
+  .h2h-win { background: rgba(106,209,154,0.18); color: #6ad19a; }
+  .h2h-loss { background: rgba(224,115,143,0.16); color: #e0738f; }
+  .h2h-tie { color: var(--muted); }
+  .take-list { display: flex; flex-direction: column; }
+  .take-row { display: flex; align-items: center; gap: 12px; padding: 9px 2px; border-bottom: 1px solid var(--line); cursor: pointer; }
+  .take-row:last-child { border-bottom: none; }
+  .take-pct { font-family: var(--mono); font-size: 16px; color: var(--accent); min-width: 48px; }
+  .take-body { flex: 1; font-size: 14px; }
+  .take-hit { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: #6ad19a; }
+  .take-miss { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: #e0738f; }
+  .take-pending { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--faint); }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+  .col-h { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+  .call-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 6px 2px; border-bottom: 1px solid var(--line); cursor: pointer; }
+  .call-row:last-child { border-bottom: none; }
+  .call-who { font-size: 13px; }
+  .call-meta { font-family: var(--mono); font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .crowd-head { font-family: var(--serif); font-size: 20px; }
+  .pp-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin: 14px 0 6px; }
+  .pp-v { font-family: var(--mono); font-size: 22px; color: var(--ink); }
+  .pp-l { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); margin-top: 2px; }
+  .pp-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 4px; }
+  .pp-table th { font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+  .pp-table td { padding: 6px 8px; border-bottom: 1px solid var(--line); }
+  .pp-table .y { color: var(--yes); } .pp-table .n { color: var(--no); }
+  .muted2 { color: var(--faint); }
+  .award-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .award-pill { font-family: var(--mono); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; background: var(--accent-tint); border: 1px solid var(--accent); color: var(--accent); }
+  .prof-awards { margin-top: 14px; }
+  .awards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+  .award-card { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: border-color 0.15s ease; }
+  .award-card:hover { border-color: var(--accent); }
+  .aw-title { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+  .aw-winner { font-family: var(--serif); font-size: 19px; color: var(--ink); margin: 3px 0 4px; }
+  .aw-blurb { font-size: 12px; color: var(--faint); line-height: 1.45; }
+  .aw-season { color: var(--faint); font-weight: 400; }
+  .lb-status { display: block; font-family: var(--sans); font-size: 11px; font-weight: 400; color: var(--faint); letter-spacing: 0; text-transform: none; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .ps-season { margin-top: 14px; }
+  .ps-head { display: flex; justify-content: space-between; align-items: baseline; font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .ps-avg { color: var(--accent); }
+  .status-editor { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin: 14px 0 6px; }
+  .status-row { display: flex; gap: 8px; margin-top: 6px; }
+  .status-row input { flex: 1; min-width: 0; background: var(--card); border: 1px solid var(--line-strong); border-radius: 8px; padding: 9px 11px; color: var(--ink); font: 400 14px var(--sans); }
+  .status-row input:focus { outline: none; border-color: var(--accent); }
+  .status-save { font: 500 13px var(--sans); padding: 9px 16px; border-radius: 8px; border: 1px solid var(--accent-strong); background: var(--accent-strong); color: #fff; cursor: pointer; flex-shrink: 0; }
+  .status-save:hover { background: var(--accent-hover); }
+  .status-save:disabled { opacity: 0.6; cursor: default; }
+  .status-hint { font-size: 11px; color: var(--faint); margin-top: 6px; }
 
   .whoami { font-size: 13px; color: var(--muted); margin-top: 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
   .whoami b { color: var(--ink); font-weight: 600; }
@@ -144,7 +231,8 @@
   .lb-rank { font-family: var(--serif); font-size: 17px; color: var(--faint); min-width: 16px; text-align: center; }
   .lb-row.first .lb-rank { color: var(--accent); }
   .avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 11px; font-weight: 500; background: var(--accent-tint); color: var(--accent); flex-shrink: 0; }
-  .lb-name { font-weight: 600; flex: 1; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .lb-name { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+  .lb-nm { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .badge { font-family: var(--mono); font-size: 9px; letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 7px; border-radius: 999px; background: #2c2e35; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; flex-shrink: 0; }
   .lb-score { font-family: var(--mono); font-weight: 500; min-width: 40px; text-align: right; font-size: 13px; }
   .lb-score .n { display: block; font-size: 9px; color: var(--faint); font-weight: 400; }
@@ -199,6 +287,7 @@
   .oracle-note { font-size: 12px; color: var(--muted); background: var(--accent-tint); border: 1px solid transparent; border-radius: 8px; padding: 9px 13px; margin-top: 16px; }
   .oracle-note b { color: var(--accent); }
   footer { margin-top: 48px; text-align: center; font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); line-height: 2; }
+  .ver { color: var(--line-strong); letter-spacing: 0.16em; }
 
   @media (max-width: 760px) {
     .layout { flex-direction: column; gap: 8px; }
@@ -250,19 +339,99 @@
       <button class="help-btn" onclick="openHelp()">? how it works</button>
     </div>
   </header>
+  <div id="banner-root"></div>
   <div id="chrome"></div>
   <div id="app"><div class="notice" style="margin-top:20px">Opening the exchange&hellip; (first load can take a few seconds)</div></div>
   <div id="modal-root"></div>
-  <footer>all forecasts final &middot; lower brier is better<br>past performance of mateo is not indicative of future mateo</footer>
+  <footer>all forecasts final &middot; lower brier is better<br>past performance of mateo is not indicative of future mateo<br><span class="ver" id="ver"></span></footer>
 </div>
 
 <script>
+/* ============================================================
+   MateoMarkets — version history
+   Scheme: MAJOR.MINOR — MAJOR = structural capability, MINOR = feature/refinement.
+
+   1.0  Core exchange: invite tokens, 1–99 slider, one final locked forecast per
+        market, Brier scoring, leaderboard, consensus hidden until you lock.
+   1.1  Seasons + archive: data tagged by season, archived-season browsing,
+        lifetime stats, prizes box, robust date handling.
+   1.2  Onboarding + clarity: "how it works" explainer modal, slider direction
+        labels, per-player consensus marker on locked markets, "X of N locked".
+   1.3  Leaderboard refinement: top-3 + your own row, full-leaderboard modal,
+        single merged locked-market caption, mobile masthead/ticker polish.
+   2.0  Roles: player / oracle / guest. Sealed guest preview (sample data), oracle
+        read-only observer, leaderboard & locked-count restricted to players.
+   3.0  Oracle analytics: per-season + all-time scope, standings over time,
+        calibration, per-question dot plots, disagreement ranking, player detail.
+   3.1  Awards: best calibrated, best upset, contrarian, conviction, crowd
+        whisperer, fence sitter — single-badge priority + full per-person lists.
+   3.2  Player profiles: clickable, trophy case (completed seasons), forecasts by
+        season with Brier, lifetime calibration, WhatsApp-style status sublines.
+   3.3  Party analytics pass one: inline player panel (no modal), confidence
+        distribution, guessing-time distribution, per-market consensus settling.
+   3.4  Party analytics pass two: head-to-head grid, hot takes, best/worst single
+        calls, crowd-vs-reality scorecard, lead-change markers on standings.
+   3.5  Refinements: selectable consensus-settles market, wider guessing bins,
+        cold-load messaging, version ticker.
+   ============================================================ */
+const VERSION = "3.5";
 const API_URL = "https://script.google.com/macros/s/AKfycbwy_2Yv6fgQTlAGdM9UBa3gv9OPOyrOA7P2o7PDtLqHcn3BdSeOCbhrDzI8__s34Fpc/exec";
 
 let DATA = null;
 let ME = null;
 let viewSeasonId = null;   // which season's board is shown
 let showArchive = false;   // archive panel open instead of a board
+let GUEST = false;         // true when logged in as a guest (preview)
+let GUEST_DATA = null;     // synthetic sample dataset for the guest preview
+let showAnalytics = false; // oracle analytics screen open
+let analyticsScope = null; // season_id being analyzed, or "all" for all-time
+let analyticsPerson = null;// slug of a player whose profile is open, or null
+let analyticsStabMarket = null; // market id selected in the consensus-settles panel
+
+// All rendering reads through D(): real data normally, sealed sample data for guests.
+function D() { return GUEST ? GUEST_DATA : DATA; }
+// Role is always read from the REAL people tab, never the sample data.
+function myRole() {
+  const list = (DATA && DATA.people) ? DATA.people : [];
+  const p = list.find(x => x.slug === ME);
+  return p ? (p.role || "player") : "player";
+}
+
+// Build a fully synthetic preview dataset: real market questions, fake everyone/everything else.
+function buildGuestData(real) {
+  function rnd(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619);} return ((h>>>0)%1000)/1000; }
+  const cs = (real.seasons||[]).find(s => s.status === "current");
+  let src = (real.markets||[]).filter(m => {
+    const v = String(m.void||"").trim().toLowerCase();
+    const voided = (v === "yes" || v === "true" || v === "1");
+    return (!cs || (m.season||"") === cs.season_id) && !voided;
+  });
+  if (!src.length) src = (real.markets||[]).filter(m => { const v=String(m.void||"").trim().toLowerCase(); return !(v==="yes"||v==="true"||v==="1"); });
+  const myReal = (real.people||[]).find(p => p.slug === ME);
+  const people = [
+    { slug: "sample-alex", display_name: "Alex", role: "player" },
+    { slug: "sample-sam", display_name: "Sam", role: "player" },
+    { slug: "sample-jordan", display_name: "Jordan", role: "player" },
+    { slug: ME, display_name: myReal ? myReal.display_name : "You", role: "player" }
+  ];
+  const markets = src.map((m, i) => {
+    // Show the full lifecycle in the preview: [0] open, [1] closed-awaiting, rest resolved.
+    let status, outcome, close_date, resolution_date;
+    if (i === 0) { status = "open"; outcome = ""; close_date = "2099-12-31"; resolution_date = ""; }
+    else if (i === 1) { status = "closed"; outcome = ""; close_date = "2099-12-31"; resolution_date = ""; }
+    else { status = "resolved"; outcome = rnd(m.id) > 0.5 ? "YES" : "NO"; close_date = "2026-01-01"; resolution_date = "2026-01-05"; }
+    return { id: m.id, question: m.question, criteria: m.criteria, ticker: m.ticker, close_date, resolution_date, status, outcome, season: "demo", void: "", notes: "" };
+  });
+  const forecasts = [];
+  markets.forEach(m => people.forEach(p => {
+    const prob = 8 + Math.floor(rnd(m.id + p.slug) * 84);
+    forecasts.push({ timestamp: "2026-01-01 12:00:00", name: p.slug, market_id: m.id, probability: String(prob) });
+  }));
+  const prizes = (real.prizes||[]).filter(p => !cs || (p.season_id||"") === cs.season_id)
+                   .map(p => ({ season_id: "demo", place: p.place, title: p.title, detail: p.detail }));
+  const seasons = [{ season_id: "demo", label: "Sample Season", subtitle: "preview", status: "current" }];
+  return { seasons, markets, forecasts, people, prizes };
+}
 
 const $app = document.getElementById("app");
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -277,12 +446,12 @@ function symbol(m) {
 }
 
 // ---------- seasons ----------
-function currentSeason() { return (DATA.seasons||[]).find(s => s.status === "current") || null; }
-function seasonById(id) { return (DATA.seasons||[]).find(s => s.season_id === id) || null; }
+function currentSeason() { return (D().seasons||[]).find(s => s.status === "current") || null; }
+function seasonById(id) { return (D().seasons||[]).find(s => s.season_id === id) || null; }
 function isVoid(m) { const v = (m.void||"").trim().toLowerCase(); return v === "yes" || v === "true" || v === "1"; }
-function seasonMarkets(id) { return DATA.markets.filter(m => (m.season||"") === id && !isVoid(m)); }
+function seasonMarkets(id) { return D().markets.filter(m => (m.season||"") === id && !isVoid(m)); }
 function boardMarkets() {
-  if (!viewSeasonId) return DATA.markets.filter(m => !isVoid(m)); // legacy mode: still hide voids
+  if (!viewSeasonId) return D().markets.filter(m => !isVoid(m)); // legacy mode: still hide voids
   return seasonMarkets(viewSeasonId);
 }
 function isArchivedView() { const cs = currentSeason(); return !!viewSeasonId && (!cs || viewSeasonId !== cs.season_id); }
@@ -297,7 +466,7 @@ function effectiveStatus(m) {
 }
 function forecastsFor(marketId) {
   const seen = {};
-  for (const f of DATA.forecasts) {
+  for (const f of D().forecasts) {
     if (f.market_id === marketId && !(f.name in seen)) seen[f.name] = Number(f.probability);
   }
   return seen;
@@ -317,34 +486,101 @@ function leaderboard(markets) {
   // Only people who actually participated this season (placed at least one forecast on its markets)
   const ids = new Set(markets.map(m => m.id));
   const played = new Set();
-  for (const f of DATA.forecasts) if (ids.has(f.market_id)) played.add(f.name);
-  const roster = DATA.people.filter(p => played.has(p.slug));
+  for (const f of D().forecasts) if (ids.has(f.market_id)) played.add(f.name);
+  const roster = D().people.filter(p => (p.role||"player") === "player" && played.has(p.slug));
 
   const rows = roster.map(p => ({ ...p, ...personStats(p.slug, markets) }));
   rows.sort((a,b) => (a.avg === null) - (b.avg === null) || a.avg - b.avg);
-  const badges = {};
-  if (rows.length && rows[0].avg !== null) badges[rows[0].slug] = "best calibrated";
-  let conv = null, contra = null;
+  const aw = computeAwards(markets, rows, roster);
+  return { rows, badges: aw.badges, awards: aw.awards, byPerson: aw.byPerson, awardsByPerson: aw.byPerson };
+}
+
+// ---------- awards ----------
+// AWARD_ORDER is the single-badge priority: a player who earns several awards
+// shows only their highest-priority one on the leaderboard. All earned awards
+// are still listed per person (byPerson) for the end-of-season profile area.
+const AWARD_DEFS = [
+  { key: "calibrated", label: "best calibrated", blurb: "lowest average Brier score" },
+  { key: "upset",      label: "best upset",      blurb: "most confident correct call on a market that went against the crowd" },
+  { key: "contrarian", label: "most contrarian", blurb: "forecasts furthest from everyone else, on average" },
+  { key: "conviction", label: "max conviction",  blurb: "forecasts furthest from 50%, on average" },
+  { key: "whisperer",  label: "crowd whisperer", blurb: "closest to the eventual consensus, on average" },
+  { key: "fence",      label: "fence sitter",    blurb: "forecasts closest to 50%, on average" }
+];
+const AWARD_ORDER = AWARD_DEFS.map(a => a.key);
+const AWARD_LABEL = Object.fromEntries(AWARD_DEFS.map(a => [a.key, a.label]));
+
+function computeAwards(markets, rows, roster) {
+  const winners = {}; // key -> slug
+  const resolved = markets.filter(m => m.status === "resolved" && m.outcome);
+
+  // best calibrated: leaderboard #1 (lowest avg brier), needs at least one resolved score
+  if (rows.length && rows[0].avg !== null) winners.calibrated = rows[0].slug;
+
+  // per-person aggregates in a single pass
+  let conv = null, contra = null, whisp = null, fence = null;
   for (const p of roster) {
-    let cSum = 0, cN = 0, dSum = 0, dN = 0;
+    let cSum=0, cN=0, dSum=0, dN=0, wSum=0, wN=0;
     for (const m of markets) {
       const fs = forecastsFor(m.id);
       if (!(p.slug in fs)) continue;
-      cSum += Math.abs(fs[p.slug] - 50); cN++;
+      const mine = fs[p.slug];
+      cSum += Math.abs(mine - 50); cN++;
       const others = Object.entries(fs).filter(([k]) => k !== p.slug).map(([,v]) => v);
-      if (others.length) { dSum += Math.abs(fs[p.slug] - others.reduce((a,b)=>a+b,0)/others.length); dN++; }
+      if (others.length) { dSum += Math.abs(mine - others.reduce((a,b)=>a+b,0)/others.length); dN++; }
+      const avg = crowdAvg(m.id);
+      if (avg !== null) { wSum += Math.abs(mine - avg); wN++; }
     }
-    if (cN && (!conv || cSum/cN > conv.v)) conv = { slug: p.slug, v: cSum/cN };
+    if (cN) {
+      if (!conv  || cSum/cN > conv.v)  conv  = { slug: p.slug, v: cSum/cN };
+      if (!fence || cSum/cN < fence.v) fence = { slug: p.slug, v: cSum/cN };
+    }
     if (dN && (!contra || dSum/dN > contra.v)) contra = { slug: p.slug, v: dSum/dN };
+    if (wN && (!whisp  || wSum/wN < whisp.v))  whisp  = { slug: p.slug, v: wSum/wN };
   }
-  if (contra && !badges[contra.slug]) badges[contra.slug] = "most contrarian";
-  if (conv && !badges[conv.slug]) badges[conv.slug] = "maximum conviction";
-  return { rows, badges };
+  if (contra) winners.contrarian = contra.slug;
+  if (conv)   winners.conviction = conv.slug;
+  if (whisp)  winners.whisperer  = whisp.slug;
+  if (fence)  winners.fence      = fence.slug;
+
+  // best upset: among resolved markets the crowd got wrong, the most confident correct call
+  let upset = null;
+  for (const m of resolved) {
+    const avg = crowdAvg(m.id);
+    if (avg === null) continue;
+    const crowdWrong = (avg >= 50 && m.outcome === "NO") || (avg < 50 && m.outcome === "YES");
+    if (!crowdWrong) continue;
+    const fs = forecastsFor(m.id);
+    for (const slug in fs) {
+      const pr = D().people.find(x => x.slug === slug);
+      if (!pr || (pr.role||"player") !== "player") continue;
+      const p = fs[slug];
+      const right = (m.outcome === "YES" && p >= 50) || (m.outcome === "NO" && p < 50);
+      if (!right) continue;
+      const conviction = Math.abs(p - 50);
+      if (!upset || conviction > upset.v) upset = { slug, v: conviction, market: m };
+    }
+  }
+  if (upset) winners.upset = upset.slug;
+
+  // build per-person award lists (all awards a person won), ordered by priority
+  const byPerson = {};
+  AWARD_ORDER.forEach(key => {
+    const slug = winners[key];
+    if (!slug) return;
+    (byPerson[slug] = byPerson[slug] || []).push(key);
+  });
+
+  // single badge per leaderboard row = highest-priority award that person holds
+  const badges = {};
+  for (const slug in byPerson) badges[slug] = AWARD_LABEL[byPerson[slug][0]];
+
+  return { winners, badges, byPerson, awards: AWARD_DEFS.filter(a => winners[a.key]).map(a => ({ ...a, slug: winners[a.key] })) };
 }
 function initials(name) { return name.trim().split(/\s+/).map(w => w[0]).join("").slice(0,2).toUpperCase(); }
-function displayName(slug) { const p = DATA.people.find(x => x.slug === slug); return p ? p.display_name : slug; }
-function invitedCount() { return DATA.people.filter(p => (p.role||"") !== "oracle").length; }
-function marketById(id) { return DATA.markets.find(m => m.id === id); }
+function displayName(slug) { const p = D().people.find(x => x.slug === slug); return p ? p.display_name : slug; }
+function invitedCount() { return D().people.filter(p => (p.role||"player") === "player").length; }
+function marketById(id) { return D().markets.find(m => m.id === id); }
 function fmtDate(s) {
   s = String(s || "").trim();
   if (!s) return "";
@@ -354,10 +590,10 @@ function fmtDate(s) {
   if (!isNaN(d)) return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
   return s;
 }
-function allLiveMarkets() { return DATA.markets.filter(m => !isVoid(m)); }
+function allLiveMarkets() { return D().markets.filter(m => !isVoid(m)); }
 function seasonsPlayedBy(slug) {
   const ids = new Set();
-  for (const f of DATA.forecasts) {
+  for (const f of D().forecasts) {
     if (f.name !== slug) continue;
     const m = marketById(f.market_id);
     if (m && !isVoid(m) && (m.season||"")) ids.add(m.season);
@@ -370,10 +606,13 @@ const stat = (label,value,sub) => `<div class="stat"><div class="label">${label}
 const section = (t) => `<h2 class="section">${t}</h2>`;
 function lbRow(r, rank, badges) {
   const mine = r.slug === ME ? " mine" : "";
-  return `<div class="lb-row${rank===1 && r.avg!==null ? " first" : ""}${mine}">
+  const status = (r.status || "").trim();
+  const clickable = myRole() === "oracle";
+  const click = clickable ? ` onclick="openProfile('${r.slug}')" style="cursor:pointer"` : "";
+  return `<div class="lb-row${rank===1 && r.avg!==null ? " first" : ""}${mine}"${click}>
     <span class="lb-rank">${rank}</span>
     <span class="avatar">${esc(initials(r.display_name))}</span>
-    <span class="lb-name">${esc(r.display_name)}${r.slug===ME ? " (you)" : ""}</span>
+    <span class="lb-name"><span class="lb-nm">${esc(r.display_name)}${r.slug===ME ? " (you)" : ""}</span>${status ? `<span class="lb-status">${esc(status)}</span>` : ""}</span>
     ${badges[r.slug] ? `<span class="badge">${esc(badges[r.slug])}</span>` : ""}
     <span class="lb-score">${r.avg!==null ? r.avg.toFixed(2) : "&mdash;"}<span class="n">${r.n} resolved</span></span>
   </div>`;
@@ -382,22 +621,29 @@ function lbRow(r, rank, badges) {
 // ---------- ticker / chrome ----------
 function tickerInner(markets) {
   if (!markets || !markets.length) return `<span class="sym">MTO</span> season opening soon &middot; no live quotes <span class="sep">&#9670;</span>`;
-  const archived = isArchivedView();
+  const reveal = isArchivedView() || GUEST || myRole() === "oracle";
   const items = markets.map(m => {
     const sym = `<span class="sym">${esc(symbol(m))}</span>`;
     if (m.status === "resolved" && m.outcome) return `${sym} settled <span class="${m.outcome==="YES"?"up":"down"}">${esc(m.outcome)}</span>`;
     const avg = crowdAvg(m.id);
-    if (avg === null) return `${sym} <span class="pending">${archived ? "no quotes" : "lock to reveal"}</span>`;
-    // Live season: hide consensus until the viewer locks. Archived season: nothing to protect, show it.
+    if (avg === null) return `${sym} <span class="pending">${reveal ? "no quotes" : "lock to reveal"}</span>`;
     const iLocked = ME && (ME in forecastsFor(m.id));
-    if (!archived && !iLocked) return `${sym} <span class="pending">lock to reveal</span>`;
+    if (!reveal && !iLocked) return `${sym} <span class="pending">lock to reveal</span>`;
     return `${sym} <span class="${avg>=50?"up":"down"}">${avg}% yes</span>${effectiveStatus(m)==="closed"?" &middot; closed":""}`;
   });
   return items.join('<span class="sep">&#9670;</span>') + '<span class="sep">&#9670;</span>';
 }
 function renderChrome() {
   const chrome = document.getElementById("chrome");
+  const bannerRoot = document.getElementById("banner-root");
+  bannerRoot.innerHTML = "";
   if (!ME) { chrome.innerHTML = ""; return; }
+  if (GUEST) {
+    bannerRoot.innerHTML = `<div class="sample-banner"><span class="sb-tag">sample data</span> this is a preview &middot; the numbers below are not real</div>`;
+    const strip = tickerInner(boardMarkets());
+    chrome.innerHTML = `<div class="ticker" aria-hidden="true"><div class="ticker-inner">${strip}${strip}</div></div>`;
+    return;
+  }
   if (showArchive) {
     chrome.innerHTML = `<div class="archive-banner"><div><span class="ab-tag">archive</span> browse past seasons</div>
       <button class="btn-ghost" onclick="backToLive()">&larr; back to current</button></div>`;
@@ -454,6 +700,13 @@ function closeHelp() { document.getElementById("modal-root").innerHTML = ""; }
 function openArchive() { showArchive = true; render(); window.scrollTo(0,0); }
 function viewSeason(id) { showArchive = false; viewSeasonId = id; render(); window.scrollTo(0,0); }
 function backToLive() { showArchive = false; const cs = currentSeason(); viewSeasonId = cs ? cs.season_id : null; render(); window.scrollTo(0,0); }
+function openAnalytics() { showAnalytics = true; analyticsPerson = null; const cs = currentSeason(); analyticsScope = cs ? cs.season_id : "all"; render(); window.scrollTo(0,0); }
+function closeAnalytics() { showAnalytics = false; analyticsPerson = null; render(); window.scrollTo(0,0); }
+function setAnalyticsScope(s) { analyticsScope = s; analyticsPerson = null; render(); window.scrollTo(0,0); }
+function openPerson(slug) { jumpToPlayer(slug); }
+function closePerson() { analyticsPerson = null; render(); window.scrollTo(0,0); }
+function openProfile(slug) { document.getElementById("modal-root").innerHTML = profileModalHtml(slug); }
+function closeProfile() { document.getElementById("modal-root").innerHTML = ""; }
 
 // ---------- views ----------
 function render() {
@@ -461,21 +714,30 @@ function render() {
   document.body.classList.toggle("archived", archived);
   renderChrome();
   if (!ME) { renderPicker(); return; }
+  if (showAnalytics && myRole() === "oracle") { renderAnalytics(); return; }
   if (showArchive) { renderArchivePanel(); return; }
 
-  const me = DATA.people.find(p => p.slug === ME);
+  const role = myRole();
+  const me = D().people.find(p => p.slug === ME) || { display_name: ME };
   const board = boardMarkets();
   const open = board.filter(m => effectiveStatus(m) === "open");
   const closed = board.filter(m => effectiveStatus(m) === "closed");
   const resolved = board.filter(m => effectiveStatus(m) === "resolved");
   const lb = leaderboard(board);
 
-  // ----- main column: markets -----
+  // ----- main column -----
   let main = "";
-  if (!archived && me.role === "oracle") {
-    main += `<div class="oracle-note">You are <b>the Oracle</b>. Create, close, and resolve markets directly in the Google Sheet; the site updates on next load.</div>`;
-  }
-  if (archived) {
+  if (role === "oracle") {
+    if (open.length) main += section("Open markets") + open.map(m => observerCard(m, "closes " + fmtDate(m.close_date))).join("");
+    if (closed.length) main += section("Closed &middot; awaiting resolution") + closed.map(m => observerCard(m, "closed")).join("");
+    if (resolved.length) main += section("Resolved") + resolved.map(resolvedCard).join("");
+    if (!board.length) main += `<div class="notice">No markets in this season yet.</div>`;
+  } else if (role === "guest") {
+    if (open.length) main += section("Open markets") + open.map(marketCard).join("");
+    if (closed.length) main += section("Closed &middot; awaiting resolution") + closed.map(m => positionCard(m, "closed")).join("");
+    if (resolved.length) main += section("Resolved") + resolved.map(resolvedCard).join("");
+    if (!board.length) main += `<div class="notice">Sample preview.</div>`;
+  } else if (archived) {
     const unresolved = [...open, ...closed];
     if (unresolved.length) main += section("Unresolved at archive") + unresolved.map(m => positionCard(m, "unresolved")).join("");
     if (resolved.length) main += section("Resolved") + resolved.map(resolvedCard).join("");
@@ -487,14 +749,37 @@ function render() {
     if (resolved.length) main += section("Resolved") + resolved.map(resolvedCard).join("");
   }
 
-  // ----- rail: profile + leaderboard -----
-  const rail = profileCard(me, open, lb, archived) + leaderboardCard(lb, archived) + prizesCard();
+  // ----- rail -----
+  let rail;
+  if (role === "oracle") rail = observerPanel() + leaderboardCard(lb, archived) + prizesCard();
+  else rail = profileCard(me, open, lb, archived, role) + leaderboardCard(lb, archived) + prizesCard();
 
-  const who = `<div class="whoami">forecasting as <b>${esc(me.display_name)}</b> <span class="linkish" onclick="switchUser()">not you?</span></div>`;
+  // ----- whoami -----
+  let who;
+  if (role === "oracle") who = `<div class="whoami">observing as <b>${esc(me.display_name)}</b> <span class="linkish" onclick="switchUser()">not you?</span></div>`;
+  else if (role === "guest") who = `<div class="whoami">previewing the exchange <span class="linkish" onclick="switchUser()">exit preview</span></div>`;
+  else who = `<div class="whoami">forecasting as <b>${esc(me.display_name)}</b> <span class="linkish" onclick="switchUser()">not you?</span></div>`;
+
   $app.innerHTML = who + `<div class="layout"><aside class="rail">${rail}</aside><main class="main">${main}</main></div>`;
 }
 
-function profileCard(me, open, lb, archived) {
+function observerCard(m, chip) {
+  return `<div class="card"><div class="symline">${esc(symbol(m))}</div>
+    <div class="top"><div class="q">${esc(m.question)}</div><span class="chip">${esc(chip)}</span></div>
+    <div class="criteria">${esc(m.criteria)}</div>
+    ${consensusHtml(m.id, true)}</div>`;
+}
+
+function observerPanel() {
+  return `<div class="card profile">
+    <div class="prof-h">observer mode</div>
+    <p style="font-size:13px;color:var(--muted);margin:0 0 12px;line-height:1.5">You're viewing as the Oracle: you see every forecast and the live consensus, and you don't appear on the leaderboard.</p>
+    <button class="btn-ghost prof-archive" onclick="openAnalytics()" style="margin-bottom:8px">&#9636; analytics</button>
+    <button class="btn-ghost prof-archive" onclick="openArchive()">&#9636; past seasons</button>
+  </div>`;
+}
+
+function profileCard(me, open, lb, archived, role) {
   const mine = lb.rows.find(r => r.slug === ME);
   const myRank = mine && mine.avg !== null ? lb.rows.indexOf(mine) + 1 : null;
   const players = lb.rows.length;
@@ -510,7 +795,7 @@ function profileCard(me, open, lb, archived) {
   const rankLabel = archived ? "placement" : "rank";
 
   let thirdStat;
-  if (archived) {
+  if (archived || role === "guest") {
     thirdStat = `<div><div class="pg-v">${players}</div><div class="pg-l">players</div></div>`;
   } else {
     const lockedOpen = open.filter(m => ME in forecastsFor(m.id)).length;
@@ -540,7 +825,8 @@ function profileCard(me, open, lb, archived) {
         <div><div class="pg-v">${life.n}</div><div class="pg-l">resolved</div></div>
       </div>
     </div>
-    <button class="btn-ghost prof-archive" onclick="openArchive()">&#9636; past seasons</button>
+    ${(() => { const mine = (lb.byPerson && lb.byPerson[ME]) || []; return mine.length ? `<div class="prof-awards"><div class="pg-label">awards</div><div class="award-list">${mine.map(k=>`<span class="award-pill">${esc(AWARD_LABEL[k])}</span>`).join("")}</div></div>` : ""; })()}
+    ${role === "guest" ? "" : `<button class="btn-ghost prof-archive" onclick="openProfile('${ME}')" style="margin-bottom:8px">&#9636; my full profile</button><button class="btn-ghost prof-archive" onclick="openArchive()">&#9636; past seasons</button>`}
   </div>`;
 }
 
@@ -584,7 +870,7 @@ function openLeaderboard() {
 function closeLeaderboard() { document.getElementById("modal-root").innerHTML = ""; }
 
 function prizesCard() {
-  const rows = (DATA.prizes||[]).filter(p => (p.season_id||"") === viewSeasonId)
+  const rows = (D().prizes||[]).filter(p => (p.season_id||"") === viewSeasonId)
     .sort((a,b) => Number(a.place) - Number(b.place));
   if (!rows.length) return "";
   const ord = n => ({1:"1st",2:"2nd",3:"3rd"}[n] || (n+"th"));
@@ -596,7 +882,7 @@ function prizesCard() {
 }
 
 function renderArchivePanel() {
-  const seasons = (DATA.seasons||[]).slice().sort((a,b) => {
+  const seasons = (D().seasons||[]).slice().sort((a,b) => {
     if (a.status==="current" && b.status!=="current") return -1;
     if (b.status==="current" && a.status!=="current") return 1;
     return (a.season_id < b.season_id) ? 1 : -1;
@@ -709,7 +995,7 @@ async function lockForecast(marketId) {
       body: JSON.stringify({ name: ME, market_id: marketId, probability: p }) });
     const out = await res.json();
     if (out.ok) {
-      DATA.forecasts.push({ timestamp: "now", name: ME, market_id: marketId, probability: String(p) });
+      D().forecasts.push({ timestamp: "now", name: ME, market_id: marketId, probability: String(p) });
       render();
     } else {
       errEl.textContent = out.error || "Something went wrong.";
@@ -721,20 +1007,835 @@ async function lockForecast(marketId) {
   }
 }
 
+// ================= ORACLE ANALYTICS =================
+// All computations read raw DATA filtered to a scope (a season id, or "all"),
+// so everything works identically for live seasons, archived seasons, and all-time.
+
+function analyticsMarkets() {
+  const all = (D().markets||[]).filter(m => !isVoid(m));
+  return analyticsScope === "all" ? all : all.filter(m => (m.season||"") === analyticsScope);
+}
+function resolvedInScope() { return analyticsMarkets().filter(m => m.status === "resolved" && m.outcome); }
+function playersInScope() {
+  // players (by role) who forecasted at least one market in scope
+  const ids = analyticsMarkets().map(m => m.id);
+  const slugs = new Set();
+  for (const f of D().forecasts) if (ids.indexOf(f.market_id) >= 0) slugs.add(f.name);
+  return D().people.filter(p => (p.role||"player") === "player" && slugs.has(p.slug));
+}
+
+// --- per-person record: every forecast in scope, with outcome and brier ---
+function personRecord(slug) {
+  const out = [];
+  for (const m of analyticsMarkets()) {
+    const fs = forecastsFor(m.id);
+    if (!(slug in fs)) continue;
+    const p = fs[slug];
+    const resolved = m.status === "resolved" && m.outcome;
+    out.push({ market: m, p, resolved, outcome: resolved ? m.outcome : null, b: resolved ? brier(p, m.outcome) : null });
+  }
+  return out;
+}
+function personSummary(slug) {
+  const rec = personRecord(slug);
+  const scored = rec.filter(r => r.resolved);
+  const avg = scored.length ? scored.reduce((a,r)=>a+r.b,0)/scored.length : null;
+  const boldness = rec.length ? rec.reduce((a,r)=>a+Math.abs(r.p-50),0)/rec.length : null;
+  let best=null, worst=null;
+  for (const r of scored) { if (!best||r.b<best.b) best=r; if (!worst||r.b>worst.b) worst=r; }
+  return { rec, scored, avg, boldness, best, worst, n: scored.length, total: rec.length };
+}
+
+// --- calibration: bin forecasts by predicted prob, compare to actual YES rate ---
+// rows: array of {p, outcome}. bins of width 20 (5 bins) to stay legible on small data.
+function calibrationBins(rows) {
+  const edges = [0,20,40,60,80,100];
+  const bins = [];
+  for (let i=0;i<edges.length-1;i++) {
+    const lo=edges[i], hi=edges[i+1];
+    const inb = rows.filter(r => r.p > lo && r.p <= hi || (i===0 && r.p>=0 && r.p<=hi && r.p<=lo? false:false));
+    // include left edge for first bin
+    const members = rows.filter(r => (i===0 ? r.p>=lo : r.p>lo) && r.p<=hi);
+    const n = members.length;
+    const yes = members.filter(r => r.outcome === "YES").length;
+    bins.push({ lo, hi, mid:(lo+hi)/2, n, yesRate: n? yes/n : null, predMean: n? members.reduce((a,r)=>a+r.p,0)/n/100 : null });
+  }
+  return bins;
+}
+function calibrationRows(slug) {
+  // if slug given, that person's forecasts; else all players pooled
+  const rows = [];
+  for (const m of resolvedInScope()) {
+    const fs = forecastsFor(m.id);
+    for (const name in fs) {
+      if (slug && name !== slug) continue;
+      const pr = D().people.find(x=>x.slug===name);
+      if (!slug && (!pr || (pr.role||"player")!=="player")) continue;
+      rows.push({ p: fs[name], outcome: m.outcome });
+    }
+  }
+  return rows;
+}
+
+// --- disagreement: spread of forecasts per market (max-min and stdev) ---
+function disagreementRanking() {
+  const out = [];
+  for (const m of analyticsMarkets()) {
+    const vals = Object.values(forecastsFor(m.id));
+    if (vals.length < 2) continue;
+    const mean = vals.reduce((a,b)=>a+b,0)/vals.length;
+    const sd = Math.sqrt(vals.reduce((a,b)=>a+(b-mean)*(b-mean),0)/vals.length);
+    out.push({ m, n: vals.length, sd, range: Math.max(...vals)-Math.min(...vals), mean });
+  }
+  return out.sort((a,b)=>b.sd-a.sd);
+}
+
+// --- standings over time: cumulative avg brier per player as markets resolve ---
+function standingsOverTime() {
+  const resolved = resolvedInScope().slice().sort((a,b) => {
+    const da = fmtDate(a.resolution_date) || fmtDate(a.close_date) || "";
+    const db = fmtDate(b.resolution_date) || fmtDate(b.close_date) || "";
+    return da < db ? -1 : da > db ? 1 : 0;
+  });
+  const players = playersInScope().map(p=>p.slug);
+  const running = {}; const counts = {};
+  players.forEach(s => { running[s]=0; counts[s]=0; });
+  const series = {}; players.forEach(s => series[s]=[]);
+  const labels = [];
+  resolved.forEach((m, idx) => {
+    const fs = forecastsFor(m.id);
+    players.forEach(s => {
+      if (s in fs) { running[s]+=brier(fs[s], m.outcome); counts[s]+=1; }
+      series[s].push(counts[s] ? running[s]/counts[s] : null);
+    });
+    labels.push({ idx, date: fmtDate(m.resolution_date)||fmtDate(m.close_date)||"", sym: symbol(m) });
+  });
+  return { series, labels, players, resolved };
+}
+
+// ---------- analytics SVG charts ----------
+const CHART_COLORS = ["#9a8cf5","#5bbef0","#f0a35b","#6ad19a","#e0738f","#c0a44e","#8f7ae0","#5ad1c4"];
+
+function svgCalibration(rows, title) {
+  const W=320, H=300, pad=44;
+  const x = v => pad + v*(W-pad-12);            // v in 0..1 (predicted)
+  const y = v => (H-pad) - v*(H-pad-12);        // v in 0..1 (observed)
+  const bins = calibrationBins(rows);
+  let pts = "";
+  bins.forEach(b => {
+    if (b.n===0 || b.predMean===null) return;
+    const cx=x(b.predMean), cy=y(b.yesRate);
+    const r = 4 + Math.min(10, b.n*1.6);
+    pts += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="var(--accent)" fill-opacity="0.55" stroke="var(--accent)"></circle>`;
+    pts += `<text x="${cx.toFixed(1)}" y="${(cy-r-4).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--faint)">${b.n}</text>`;
+  });
+  const ticks = [0,0.25,0.5,0.75,1].map(t =>
+    `<text x="${x(t).toFixed(1)}" y="${H-pad+16}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--faint)">${Math.round(t*100)}</text>`+
+    `<text x="${pad-8}" y="${(y(t)+3).toFixed(1)}" text-anchor="end" font-family="var(--mono)" font-size="9" fill="var(--faint)">${Math.round(t*100)}</text>`
+  ).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart-svg" xmlns="http://www.w3.org/2000/svg">
+    <line x1="${pad}" y1="${H-pad}" x2="${W-12}" y2="${y(1)}" stroke="var(--line-strong)" stroke-dasharray="4 4"></line>
+    <line x1="${pad}" y1="${pad? 12:0}" x2="${pad}" y2="${H-pad}" stroke="var(--line)"></line>
+    <line x1="${pad}" y1="${H-pad}" x2="${W-12}" y2="${H-pad}" stroke="var(--line)"></line>
+    ${ticks}${pts}
+    <text x="${(pad+(W-12))/2}" y="${H-6}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--muted)">predicted % (yes)</text>
+    <text transform="translate(12 ${(H-pad)/2}) rotate(-90)" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--muted)">actual % yes</text>
+  </svg>`;
+}
+
+function svgDotPlot(m) {
+  // one market: a 0-100 axis with a dot per forecaster (clickable), consensus + outcome
+  const fs = forecastsFor(m.id);
+  const entries = Object.keys(fs).map(slug => ({ slug, p: fs[slug] })).sort((a,b)=>a.p-b.p);
+  const W=560, rowH=30, H=68;
+  const x = v => 44 + v/100*(W-64);
+  const resolved = m.status==="resolved" && m.outcome;
+  const avg = entries.length ? Math.round(entries.reduce((a,e)=>a+e.p,0)/entries.length) : null;
+  let dots="";
+  // jitter dots vertically a little if close
+  entries.forEach((e,i) => {
+    const cx=x(e.p);
+    const cy=34 + ((i%2)?7:-7)*(entries.length>6?1:0);
+    const correct = resolved ? ((m.outcome==="YES" && e.p>=50) || (m.outcome==="NO" && e.p<50)) : null;
+    const fill = resolved ? (correct?"#6ad19a":"#e0738f") : "var(--accent)";
+    dots += `<g class="dot" onclick="jumpToPlayer('${e.slug}')" style="cursor:pointer">
+      <circle cx="${cx.toFixed(1)}" cy="${cy}" r="6" fill="${fill}" fill-opacity="0.85"></circle>
+      <text x="${cx.toFixed(1)}" y="${cy+3}" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="#0e0f12" font-weight="700">${esc(initials(displayName(e.slug)))}</text>
+    </g>`;
+  });
+  const consensus = avg!==null ? `<line x1="${x(avg)}" y1="14" x2="${x(avg)}" y2="54" stroke="var(--ink)" stroke-width="2" stroke-dasharray="2 2"></line>
+    <text x="${x(avg)}" y="11" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="var(--ink)">crowd ${avg}</text>` : "";
+  const axis = [0,50,100].map(t=>`<text x="${x(t)}" y="${H-4}" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="var(--faint)">${t}</text>`).join("");
+  const outChip = resolved ? `<tspan fill="${m.outcome==="YES"?"#6ad19a":"#e0738f"}"> &middot; ${m.outcome}</tspan>` : (effectiveStatus(m)==="closed"?`<tspan fill="var(--faint)"> &middot; closed</tspan>`:`<tspan fill="var(--faint)"> &middot; open</tspan>`);
+  return `<div class="dp-block">
+    <div class="dp-q">${esc(symbol(m))} &middot; ${esc(m.question)}</div>
+    <svg viewBox="0 0 ${W} ${H}" class="dp-svg" xmlns="http://www.w3.org/2000/svg">
+      <line x1="44" y1="34" x2="${W-20}" y2="34" stroke="var(--line)"></line>
+      ${consensus}${dots}${axis}
+    </svg>
+  </div>`;
+}
+
+function svgStandings() {
+  const { series, labels, players } = standingsOverTime();
+  if (!labels.length) return `<div class="notice">No resolved markets in this scope yet.</div>`;
+  const W=560, H=300, padL=46, padB=46, padT=14, padR=110;
+  const n = labels.length;
+  // y domain: brier 0..max (a bit above observed max), lower is better
+  let maxY=0.25; players.forEach(s=>series[s].forEach(v=>{ if(v!==null&&v>maxY)maxY=v; }));
+  maxY = Math.ceil(maxY*20)/20;
+  const x = i => padL + (n===1?0:(i/(n-1))*(W-padL-padR));
+  const y = v => padT + (v/maxY)*(H-padT-padB);   // 0 at top (best)
+  let lines="";
+  players.forEach((s,si)=>{
+    const col=CHART_COLORS[si%CHART_COLORS.length];
+    let d=""; let last=null;
+    series[s].forEach((v,i)=>{ if(v===null) return; const px=x(i),py=y(v); d+=(d===""?"M":"L")+px.toFixed(1)+" "+py.toFixed(1); last={px,py}; });
+    if(d) lines+=`<path d="${d}" fill="none" stroke="${col}" stroke-width="2" stroke-opacity="0.9"></path>`;
+    if(last) lines+=`<text x="${(last.px+6).toFixed(1)}" y="${(last.py+3).toFixed(1)}" font-family="var(--mono)" font-size="9" fill="${col}" onclick="jumpToPlayer('${s}')" style="cursor:pointer">${esc(displayName(s))}</text>`;
+  });
+  const yticks=[0,0.25,0.5,0.75,1].filter(t=>t*maxY<=maxY).map(t=>{const v=t*maxY;return `<text x="${padL-8}" y="${(y(v)+3).toFixed(1)}" text-anchor="end" font-family="var(--mono)" font-size="9" fill="var(--faint)">${v.toFixed(2)}</text><line x1="${padL}" y1="${y(v).toFixed(1)}" x2="${W-padR}" y2="${y(v).toFixed(1)}" stroke="var(--line)" stroke-opacity="0.5"></line>`;}).join("");
+  const xlabels=labels.map((l,i)=> (n<=8 || i%2===0) ? `<text x="${x(i).toFixed(1)}" y="${H-padB+16}" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="var(--faint)">${esc(l.sym.replace("MTO\u00b7",""))}</text>`:"").join("");
+  // lead-change markers: vertical line where the #1 spot changed hands
+  let prevLeader=null; let marks="";
+  labels.forEach((l,i)=>{
+    let leader=null, best=Infinity;
+    players.forEach(s=>{ const v=series[s][i]; if(v!==null && v<best){ best=v; leader=s; } });
+    if(leader && prevLeader && leader!==prevLeader){
+      marks += `<line x1="${x(i).toFixed(1)}" y1="${padT}" x2="${x(i).toFixed(1)}" y2="${H-padB}" stroke="var(--ink)" stroke-opacity="0.25" stroke-dasharray="3 3"></line>`;
+      marks += `<text x="${x(i).toFixed(1)}" y="${padT-3}" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="var(--faint)">lead</text>`;
+    }
+    if(leader) prevLeader=leader;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart-svg" xmlns="http://www.w3.org/2000/svg">
+    ${yticks}
+    <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H-padB}" stroke="var(--line)"></line>
+    ${marks}${lines}${xlabels}
+    <text transform="translate(12 ${(H-padB)/2}) rotate(-90)" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--muted)">cumulative avg brier (lower = better)</text>
+  </svg>`;
+}
+
+function svgDisagreement() {
+  const rank = disagreementRanking();
+  if (!rank.length) return `<div class="notice">Need at least two forecasts on a market to measure disagreement.</div>`;
+  const maxSd = Math.max(...rank.map(r=>r.sd), 1);
+  return `<div class="disag-list">` + rank.map(r => {
+    const w = Math.round(r.sd/maxSd*100);
+    return `<div class="disag-row">
+      <div class="disag-label">${esc(symbol(r.m))}</div>
+      <div class="disag-track"><div class="disag-fill" style="width:${w}%"></div></div>
+      <div class="disag-val">&plusmn;${r.sd.toFixed(0)}</div>
+    </div>`;
+  }).join("") + `</div>`;
+}
+
+// ---------- pass-one analytics: timing, confidence, stabilization ----------
+function tsToMs(s) {
+  s = String(s||"").trim();
+  if (!s) return null;
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/);
+  if (m) return Date.UTC(+m[1], +m[2]-1, +m[3], +m[4], +m[5], +m[6]);
+  const d = new Date(s);
+  return isNaN(d) ? null : d.getTime();
+}
+function forecastsTimedFor(marketId) {
+  // raw forecast rows for a market (first per person), with parsed time, sorted by time
+  const seen = {};
+  for (const f of D().forecasts) {
+    if (f.market_id !== marketId || (f.name in seen)) continue;
+    seen[f.name] = { name: f.name, p: Number(f.probability), t: tsToMs(f.timestamp) };
+  }
+  return Object.values(seen).filter(x => x.t !== null).sort((a,b)=>a.t-b.t);
+}
+
+// confidence distribution: counts of forecasts per 10-wide probability band (0-9 .. 90-99)
+function confidenceBins(probs) {
+  const bins = new Array(10).fill(0);
+  probs.forEach(p => { const i = Math.max(0, Math.min(9, Math.floor(p/10))); bins[i]++; });
+  return bins;
+}
+function svgConfidence(probs) {
+  if (!probs.length) return `<div class="notice">No forecasts in this scope yet.</div>`;
+  const bins = confidenceBins(probs);
+  const W=520, H=200, padL=30, padB=28, padT=10;
+  const max = Math.max(...bins, 1);
+  const bw = (W-padL-10)/10;
+  const y = v => padT + (1 - v/max)*(H-padT-padB);
+  let bars="";
+  bins.forEach((c,i)=>{
+    const x = padL + i*bw;
+    const h = (H-padT-padB) - (y(c)-padT);
+    bars += `<rect x="${(x+3).toFixed(1)}" y="${y(c).toFixed(1)}" width="${(bw-6).toFixed(1)}" height="${Math.max(0,h).toFixed(1)}" rx="2" fill="var(--accent)" fill-opacity="${c?0.65:0.15}"></rect>`;
+    if (c) bars += `<text x="${(x+bw/2).toFixed(1)}" y="${(y(c)-4).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--faint)">${c}</text>`;
+  });
+  const ax = [0,50,100].map(t=>`<text x="${(padL + (t/100)*(W-padL-10)).toFixed(1)}" y="${H-padB+16}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--faint)">${t}</text>`).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart-svg" xmlns="http://www.w3.org/2000/svg">
+    <line x1="${padL}" y1="${H-padB}" x2="${W-10}" y2="${H-padB}" stroke="var(--line)"></line>
+    ${bars}${ax}
+    <text x="${(padL+(W-10))/2}" y="${H-4}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--muted)">forecast %</text>
+  </svg>`;
+}
+
+// guessing distribution: density of when forecasts were placed across the season span
+function allTimedForecasts() {
+  const ids = new Set(analyticsMarkets().map(m=>m.id));
+  const out = [];
+  for (const f of D().forecasts) {
+    if (!ids.has(f.market_id)) continue;
+    const pr = D().people.find(x=>x.slug===f.name);
+    if (!pr || (pr.role||"player")!=="player") continue;
+    const t = tsToMs(f.timestamp);
+    if (t !== null) out.push(t);
+  }
+  return out.sort((a,b)=>a-b);
+}
+function svgGuessTiming() {
+  const ts = allTimedForecasts();
+  if (ts.length < 2) return `<div class="notice">Not enough timestamped forecasts yet to show a distribution.</div>`;
+  const lo = ts[0], hi = ts[ts.length-1];
+  if (hi <= lo) return `<div class="notice">All forecasts landed at essentially the same time.</div>`;
+  const NB = 9;
+  const bins = new Array(NB).fill(0);
+  ts.forEach(t => { let i = Math.floor((t-lo)/(hi-lo)*NB); if (i>=NB) i=NB-1; bins[i]++; });
+  const W=520, H=200, padL=14, padB=30, padT=12;
+  const max = Math.max(...bins, 1);
+  const x = i => padL + (i/NB)*(W-padL-10);
+  const y = v => padT + (1 - v/max)*(H-padT-padB);
+  // smooth-ish filled area through bin tops (at bin centers)
+  let pts = [];
+  pts.push([padL, H-padB]);
+  bins.forEach((c,i)=> pts.push([x(i)+(W-padL-10)/NB/2, y(c)]));
+  pts.push([W-10, H-padB]);
+  const d = pts.map((p,i)=>(i===0?"M":"L")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ")+" Z";
+  const fmt = ms => { const d=new Date(ms); return (d.getUTCMonth()+1)+"/"+d.getUTCDate(); };
+  const ticks = [0,0.25,0.5,0.75,1].map(f=>{ const ms=lo+f*(hi-lo); const px=padL+f*(W-padL-10); return `<text x="${px.toFixed(1)}" y="${H-padB+16}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--faint)">${fmt(ms)}</text>`; }).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart-svg" xmlns="http://www.w3.org/2000/svg">
+    <path d="${d}" fill="var(--accent)" fill-opacity="0.22" stroke="var(--accent)" stroke-width="2"></path>
+    <line x1="${padL}" y1="${H-padB}" x2="${W-10}" y2="${H-padB}" stroke="var(--line)"></line>
+    ${ticks}
+    <text x="${(padL+(W-10))/2}" y="${H-4}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--muted)">when forecasts were placed</text>
+  </svg>`;
+}
+
+// consensus stabilization: running mean of a market's forecasts as they arrived
+function marketStabilization(m) {
+  const seq = forecastsTimedFor(m.id);
+  let sum=0; const pts=[];
+  seq.forEach((f,i)=>{ sum+=f.p; pts.push({ i, t:f.t, mean:sum/(i+1), p:f.p }); });
+  return pts;
+}
+function svgStabilization(m) {
+  const pts = marketStabilization(m);
+  if (pts.length < 2) return "";   // need a few forecasts to show movement
+  const W=520, H=150, padL=30, padB=24, padT=12, padR=10;
+  const n = pts.length;
+  const x = i => padL + (n===1?0:(i/(n-1))*(W-padL-padR));
+  const y = v => padT + (1 - v/100)*(H-padT-padB);
+  let d="";
+  pts.forEach((pt,i)=>{ d += (i===0?"M":"L")+x(i).toFixed(1)+" "+y(pt.mean).toFixed(1); });
+  // individual incoming forecasts as faint dots
+  let dots = pts.map((pt,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(pt.p).toFixed(1)}" r="2.5" fill="var(--faint)"></circle>`).join("");
+  const finalMean = Math.round(pts[pts.length-1].mean);
+  const resolved = m.status==="resolved" && m.outcome;
+  const outClr = resolved ? (m.outcome==="YES"?"#6ad19a":"#e0738f") : "var(--ink)";
+  const yticks = [0,50,100].map(t=>`<text x="${padL-6}" y="${(y(t)+3).toFixed(1)}" text-anchor="end" font-family="var(--mono)" font-size="8" fill="var(--faint)">${t}</text><line x1="${padL}" y1="${y(t).toFixed(1)}" x2="${W-padR}" y2="${y(t).toFixed(1)}" stroke="var(--line)" stroke-opacity="0.4"></line>`).join("");
+  return `<div class="dp-block">
+    <div class="dp-q">${esc(symbol(m))} &middot; ${esc(m.question)}${resolved?` <span style="color:${outClr}">&middot; ${m.outcome}</span>`:""}</div>
+    <svg viewBox="0 0 ${W} ${H}" class="dp-svg" xmlns="http://www.w3.org/2000/svg">
+      ${yticks}${dots}
+      <path d="${d}" fill="none" stroke="var(--accent)" stroke-width="2"></path>
+      <circle cx="${x(n-1).toFixed(1)}" cy="${y(pts[pts.length-1].mean).toFixed(1)}" r="4" fill="var(--accent)"></circle>
+      <text x="${(W-padR).toFixed(1)}" y="${(y(pts[pts.length-1].mean)-6).toFixed(1)}" text-anchor="end" font-family="var(--mono)" font-size="9" fill="var(--accent)">settled ${finalMean}%</text>
+    </svg>
+  </div>`;
+}
+
+// ---------- inline player panel (replaces the old modal) ----------
+function selectedPlayerSlug() {
+  const players = playersInScope().map(p=>p.slug);
+  if (analyticsPerson && players.indexOf(analyticsPerson) >= 0) return analyticsPerson;
+  return players.length ? players[0] : null;
+}
+function playerButtonsHtml() {
+  const players = playersInScope();
+  if (!players.length) return `<span class="muted2">No forecasts in this scope yet.</span>`;
+  const sel = selectedPlayerSlug();
+  return players.map(p => `<button class="player-chip${p.slug===sel?" on":""}" data-slug="${p.slug}" onclick="selectPlayer('${p.slug}')">${esc(p.display_name)}</button>`).join("");
+}
+function playerPanelHtml(slug) {
+  if (!slug) return `<div class="notice">No forecasts in this scope yet.</div>`;
+  const s = personSummary(slug);
+  const calRows = calibrationRows(slug);
+  const lb = leaderboard(analyticsMarkets());
+  const myAwards = (lb.byPerson && lb.byPerson[slug]) || [];
+  const probs = s.rec.map(r => r.p);
+  const recRows = s.rec.slice().sort((a,b)=> (a.b===null?-1:b.b===null?1:a.b-b.b)).map(r => {
+    const out = r.resolved ? `<span class="${r.outcome==="YES"?"y":"n"}">${r.outcome}</span>` : `<span class="muted2">${effectiveStatus(r.market)}</span>`;
+    return `<tr><td>${esc(symbol(r.market))}</td><td style="text-align:right">${r.p}%</td><td style="text-align:center">${out}</td><td style="text-align:right">${r.b!==null?r.b.toFixed(2):"&mdash;"}</td></tr>`;
+  }).join("");
+  return `<div class="pp-head-row"><h3 class="pp-name">${esc(displayName(slug))}</h3></div>
+    ${myAwards.length?`<div class="award-list">`+myAwards.map(k=>`<span class="award-pill">${esc(AWARD_LABEL[k])}</span>`).join("")+`</div>`:""}
+    <div class="pp-stats">
+      <div><div class="pp-v">${s.avg!==null?s.avg.toFixed(2):"&mdash;"}</div><div class="pp-l">avg brier</div></div>
+      <div><div class="pp-v">${s.boldness!==null?s.boldness.toFixed(0):"&mdash;"}</div><div class="pp-l">boldness</div></div>
+      <div><div class="pp-v">${s.n}</div><div class="pp-l">resolved</div></div>
+      <div><div class="pp-v">${s.total}</div><div class="pp-l">forecasts</div></div>
+    </div>
+    ${s.best?`<p style="font-size:13px;color:var(--muted);margin:4px 0 0">Best call: <b style="color:var(--ink)">${esc(symbol(s.best.market))}</b> at ${s.best.p}% (${s.best.b.toFixed(2)}). Worst: ${esc(symbol(s.worst.market))} at ${s.worst.p}% (${s.worst.b.toFixed(2)}).</p>`:""}
+    <div class="pp-charts">
+      <div><div class="pp-chart-h">calibration</div>${calRows.length?svgCalibration(calRows):`<div class="notice">No resolved forecasts yet.</div>`}</div>
+      <div><div class="pp-chart-h">confidence distribution</div>${svgConfidence(probs)}</div>
+    </div>
+    <div class="pp-chart-h" style="margin-top:14px">every forecast</div>
+    <table class="pp-table"><thead><tr><th>market</th><th style="text-align:right">forecast</th><th style="text-align:center">outcome</th><th style="text-align:right">brier</th></tr></thead><tbody>${recRows}</tbody></table>`;
+}
+function selectPlayer(slug) {
+  analyticsPerson = slug;
+  const panel = document.getElementById("player-panel");
+  if (panel) panel.innerHTML = playerPanelHtml(slug);
+  const btns = document.querySelectorAll(".player-chip");
+  if (btns && btns.forEach) btns.forEach(b => b.classList.toggle("on", b.dataset && b.dataset.slug === slug));
+}
+function jumpToPlayer(slug) {
+  selectPlayer(slug);
+  const panel = document.getElementById("player-panel");
+  if (panel && panel.scrollIntoView) panel.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+// ---------- consensus-settles selector (markets shown one at a time) ----------
+function stabMarketsList() {
+  // markets with >1 forecast placed at different times, longest span first
+  return analyticsMarkets().slice()
+    .map(m => { const s = forecastsTimedFor(m.id); return { m, span: s.length > 1 ? s[s.length-1].t - s[0].t : 0, nf: s.length }; })
+    .filter(o => o.nf > 1)
+    .sort((a,b) => b.span - a.span)
+    .map(o => o.m);
+}
+function selectedStabMarketId() {
+  const ids = stabMarketsList().map(m => m.id);
+  if (analyticsStabMarket && ids.indexOf(analyticsStabMarket) >= 0) return analyticsStabMarket;
+  return ids.length ? ids[0] : null;
+}
+function stabButtonsHtml() {
+  const list = stabMarketsList();
+  if (!list.length) return "";
+  const sel = selectedStabMarketId();
+  return list.map(m => `<button class="player-chip${m.id===sel?" on":""}" data-mkt="${m.id}" onclick="selectStabMarket('${m.id}')">${esc(symbol(m).replace("MTO\u00b7",""))}</button>`).join("");
+}
+function selectStabMarket(id) {
+  analyticsStabMarket = id;
+  const panel = document.getElementById("stab-panel");
+  if (panel) panel.innerHTML = svgStabilization(marketById(id));
+  const btns = document.querySelectorAll("[data-mkt]");
+  if (btns && btns.forEach) btns.forEach(b => b.classList.toggle("on", b.dataset && b.dataset.mkt === id));
+}
+
+// ================= PASS-TWO PARTY ANALYTICS =================
+
+// lead changes (how many times #1 changed hands over the season)
+function leadChanges() {
+  const { series, labels, players } = standingsOverTime();
+  let prev = null, changes = 0;
+  labels.forEach((l, i) => {
+    let leader = null, best = Infinity;
+    players.forEach(s => { const v = series[s][i]; if (v !== null && v < best) { best = v; leader = s; } });
+    if (leader && prev && leader !== prev) changes++;
+    if (leader) prev = leader;
+  });
+  return changes;
+}
+
+// head-to-head: per pair, wins on shared resolved markets (lower brier wins that market)
+function headToHead() {
+  const players = playersInScope();
+  const slugs = players.map(p => p.slug);
+  const rec = {};
+  slugs.forEach(a => { rec[a] = {}; slugs.forEach(b => { if (a !== b) rec[a][b] = { w: 0, l: 0 }; }); });
+  resolvedInScope().forEach(m => {
+    const fs = forecastsFor(m.id);
+    for (let i = 0; i < slugs.length; i++) for (let j = i + 1; j < slugs.length; j++) {
+      const a = slugs[i], b = slugs[j];
+      if (!(a in fs) || !(b in fs)) continue;
+      const ba = brier(fs[a], m.outcome), bb = brier(fs[b], m.outcome);
+      if (ba < bb) { rec[a][b].w++; rec[b][a].l++; }
+      else if (bb < ba) { rec[b][a].w++; rec[a][b].l++; }
+    }
+  });
+  return { players, rec };
+}
+function svgHeadToHead() {
+  const { players, rec } = headToHead();
+  if (players.length < 2) return `<div class="notice">Need at least two players with shared resolved markets.</div>`;
+  const head = `<tr><th></th>` + players.map(p => `<th class="h2h-col">${esc(initials(p.display_name))}</th>`).join("") + `</tr>`;
+  const rows = players.map(a => {
+    const cells = players.map(b => {
+      if (a.slug === b.slug) return `<td class="h2h-self">&middot;</td>`;
+      const r = rec[a.slug][b.slug];
+      if (r.w === 0 && r.l === 0) return `<td class="h2h-na">&ndash;</td>`;
+      const cls = r.w > r.l ? "h2h-win" : (r.w < r.l ? "h2h-loss" : "h2h-tie");
+      return `<td class="${cls}">${r.w}&ndash;${r.l}</td>`;
+    }).join("");
+    return `<tr><th class="h2h-row" onclick="jumpToPlayer('${a.slug}')">${esc(a.display_name)}</th>${cells}</tr>`;
+  }).join("");
+  return `<div class="h2h-wrap"><table class="h2h">${head}${rows}</table></div>`;
+}
+
+// hot takes: most confident forecasts, with payoff once resolved
+function hotTakes(limit) {
+  const out = [];
+  analyticsMarkets().forEach(m => {
+    const fs = forecastsFor(m.id);
+    const resolved = m.status === "resolved" && m.outcome;
+    for (const slug in fs) {
+      const pr = D().people.find(x => x.slug === slug);
+      if (!pr || (pr.role || "player") !== "player") continue;
+      const p = fs[slug];
+      const correct = resolved ? ((m.outcome === "YES" && p >= 50) || (m.outcome === "NO" && p < 50)) : null;
+      out.push({ slug, m, p, conv: Math.abs(p - 50), resolved, correct });
+    }
+  });
+  out.sort((a, b) => b.conv - a.conv);
+  return out.slice(0, limit || 12);
+}
+
+// single best & worst individual calls (by brier, resolved only)
+function singleCalls() {
+  const out = [];
+  resolvedInScope().forEach(m => {
+    const fs = forecastsFor(m.id);
+    for (const slug in fs) {
+      const pr = D().people.find(x => x.slug === slug);
+      if (!pr || (pr.role || "player") !== "player") continue;
+      out.push({ slug, m, p: fs[slug], b: brier(fs[slug], m.outcome), outcome: m.outcome });
+    }
+  });
+  return { best: out.slice().sort((a, b) => a.b - b.b).slice(0, 5), worst: out.slice().sort((a, b) => b.b - a.b).slice(0, 5) };
+}
+
+// crowd vs reality: how often the consensus was right
+function crowdScore() {
+  let correct = 0, total = 0; const wrong = [];
+  resolvedInScope().forEach(m => {
+    const avg = crowdAvg(m.id);
+    if (avg === null) return;
+    total++;
+    const right = (avg >= 50 && m.outcome === "YES") || (avg < 50 && m.outcome === "NO");
+    if (right) correct++; else wrong.push({ m, avg, dist: Math.abs(avg - 50) });
+  });
+  wrong.sort((a, b) => b.dist - a.dist);
+  return { correct, total, rate: total ? correct / total : null, wrong };
+}
+
+// ---------- person profile (legacy modal, kept for players' own profile) ----------
+function personProfileHtml(slug) {
+  const s = personSummary(slug);
+  const calRows = calibrationRows(slug);
+  const lb = leaderboard(analyticsMarkets());
+  const myAwards = (lb.byPerson && lb.byPerson[slug]) || [];
+  const awardsHtml = myAwards.length
+    ? `<div class="award-list">` + myAwards.map(k => `<span class="award-pill">${esc(AWARD_LABEL[k])}</span>`).join("") + `</div>`
+    : `<p class="muted2" style="font-size:13px;margin:6px 0 0">No awards in this scope yet.</p>`;
+  const recRows = s.rec.slice().sort((a,b)=> (a.b===null?-1:b.b===null?1:a.b-b.b)).map(r => {
+    const out = r.resolved ? `<span class="${r.outcome==="YES"?"y":"n"}">${r.outcome}</span>` : `<span class="muted2">${effectiveStatus(r.market)}</span>`;
+    return `<tr><td>${esc(symbol(r.market))}</td><td style="text-align:right">${r.p}%</td><td style="text-align:center">${out}</td><td style="text-align:right">${r.b!==null?r.b.toFixed(2):"&mdash;"}</td></tr>`;
+  }).join("");
+  return `<div class="modal-bg" onclick="if(event.target===this)closePerson()">
+    <div class="modal" role="dialog" aria-label="Player detail">
+      <h3>${esc(displayName(slug))}</h3>
+      <div class="m-sub">${analyticsScope==="all"?"all-time":esc((seasonById(analyticsScope)||{}).label||"")}</div>
+      <div class="pp-stats">
+        <div><div class="pp-v">${s.avg!==null?s.avg.toFixed(2):"&mdash;"}</div><div class="pp-l">avg brier</div></div>
+        <div><div class="pp-v">${s.boldness!==null?s.boldness.toFixed(0):"&mdash;"}</div><div class="pp-l">boldness</div></div>
+        <div><div class="pp-v">${s.n}</div><div class="pp-l">resolved</div></div>
+        <div><div class="pp-v">${s.total}</div><div class="pp-l">forecasts</div></div>
+      </div>
+      ${s.best?`<p style="font-size:13px;color:var(--muted);margin:4px 0 0">Best call: <b style="color:var(--ink)">${esc(symbol(s.best.market))}</b> at ${s.best.p}% (${s.best.b.toFixed(2)}). Worst: ${esc(symbol(s.worst.market))} at ${s.worst.p}% (${s.worst.b.toFixed(2)}).</p>`:""}
+      <h4>Awards</h4>
+      ${awardsHtml}
+      <h4>Calibration</h4>
+      ${calRows.length?svgCalibration(calRows):`<div class="notice">No resolved forecasts yet.</div>`}
+      <h4>Every forecast</h4>
+      <table class="pp-table"><thead><tr><th>market</th><th style="text-align:right">forecast</th><th style="text-align:center">outcome</th><th style="text-align:right">brier</th></tr></thead><tbody>${recRows}</tbody></table>
+      <button class="modal-close" onclick="closePerson()">Close</button>
+    </div>
+  </div>`;
+}
+
+// ---------- the analytics screen ----------
+function renderAnalytics() {
+  const seasons = (DATA.seasons||[]).slice();
+  // scope selector: each season (current first) + all-time
+  const ordered = seasons.sort((a,b)=> (a.status==="current"?-1:b.status==="current"?1:0));
+  const tabs = ordered.map(s => `<button class="scope-tab${analyticsScope===s.season_id?" on":""}" onclick="setAnalyticsScope('${s.season_id}')">${esc(s.label)}</button>`).join("")
+    + `<button class="scope-tab${analyticsScope==="all"?" on":""}" onclick="setAnalyticsScope('all')">All-time</button>`;
+
+  const resolved = resolvedInScope();
+  const markets = analyticsMarkets();
+  const players = playersInScope();
+  const calAll = calibrationRows(null);
+  const lb = leaderboard(markets);
+
+  let body = "";
+
+  // Awards
+  body += `<h2 class="section">Awards</h2>`;
+  if (lb.awards && lb.awards.length) {
+    body += `<div class="card"><div class="awards-grid">` + lb.awards.map(a =>
+      `<div class="award-card" onclick="jumpToPlayer('${a.slug}')">
+        <div class="aw-title">${esc(a.label)}</div>
+        <div class="aw-winner">${esc(displayName(a.slug))}</div>
+        <div class="aw-blurb">${esc(a.blurb)}</div>
+      </div>`).join("") + `</div></div>`;
+  } else {
+    body += `<div class="card"><div class="notice">Awards appear once markets have resolved.</div></div>`;
+  }
+
+  // Standings over time
+  body += `<h2 class="section">Standings over time</h2>`;
+  const lc = leadChanges();
+  body += `<div class="card chart-card">${svgStandings()}<div class="chart-note">Each line is a player's running average Brier as markets resolved (lower = better). ${lc>0?`The lead changed hands <b>${lc}</b> time${lc===1?"":"s"} (dashed markers).`:"The leader never changed once it was decided."}</div></div>`;
+
+  // Calibration (pooled)
+  body += `<h2 class="section">Calibration &middot; all players</h2>`;
+  body += `<div class="card chart-card">${calAll.length?svgCalibration(calAll):`<div class="notice">No resolved markets in this scope yet.</div>`}<div class="chart-note">Dots on the dashed line are perfectly calibrated. Above the line = events happened more than predicted; below = less. Dot size = number of forecasts.</div></div>`;
+
+  // Players (inline panel that swaps in place, no modal)
+  body += `<h2 class="section">Players</h2>`;
+  const sel = selectedPlayerSlug();
+  body += `<div class="card"><div class="player-chips" id="player-buttons">${playerButtonsHtml()}</div>`
+    + `<div id="player-panel" class="player-panel">${playerPanelHtml(sel)}</div></div>`;
+
+  // Confidence distribution (pooled)
+  body += `<h2 class="section">Confidence distribution &middot; all players</h2>`;
+  const allProbs = [];
+  analyticsMarkets().forEach(m => { const fs = forecastsFor(m.id); for (const slug in fs) { const pr = D().people.find(x=>x.slug===slug); if (pr && (pr.role||"player")==="player") allProbs.push(fs[slug]); } });
+  body += `<div class="card chart-card">${svgConfidence(allProbs)}<div class="chart-note">How often forecasts land near the middle (uncertain) versus near the extremes (confident), across everyone.</div></div>`;
+
+  // Guessing distribution (when forecasts were placed)
+  body += `<h2 class="section">When guesses happen</h2>`;
+  body += `<div class="card chart-card">${svgGuessTiming()}<div class="chart-note">The distribution of when forecasts were locked across the season &mdash; the shape of the crowd's guessing habits.</div></div>`;
+
+  // Consensus stabilization (one market at a time, selectable)
+  body += `<h2 class="section">How consensus settles</h2>`;
+  const stabList = stabMarketsList();
+  if (stabList.length) {
+    const ssel = selectedStabMarketId();
+    body += `<div class="card chart-card"><div class="player-chips" id="stab-buttons">${stabButtonsHtml()}</div>`
+      + `<div id="stab-panel" class="player-panel">${svgStabilization(marketById(ssel))}</div>`
+      + `<div class="chart-note">The purple line is the running consensus as each forecast arrived; faint dots are the individual forecasts. Pick a market above; those whose forecasts came in over a longer span are listed first.</div></div>`;
+  } else {
+    body += `<div class="card"><div class="notice">Consensus movement appears once markets have several forecasts placed at different times.</div></div>`;
+  }
+
+  // Disagreement
+  body += `<h2 class="section">Most divisive markets</h2>`;
+  body += `<div class="card chart-card">${svgDisagreement()}<div class="chart-note">Spread (standard deviation) of forecasts. Higher = the group disagreed more.</div></div>`;
+
+  // Head to head
+  body += `<h2 class="section">Head to head</h2>`;
+  body += `<div class="card chart-card">${svgHeadToHead()}<div class="chart-note">On markets two players both forecast, who had the lower Brier more often. Read across a row: wins&ndash;losses versus each column. Green = that row leads the matchup.</div></div>`;
+
+  // Hot takes
+  body += `<h2 class="section">Hot takes</h2>`;
+  const ht = hotTakes(12);
+  if (ht.length) {
+    body += `<div class="card"><div class="take-list">` + ht.map(t => {
+      const tag = t.resolved ? (t.correct ? `<span class="take-hit">nailed it</span>` : `<span class="take-miss">whiffed</span>`) : `<span class="take-pending">pending</span>`;
+      return `<div class="take-row" onclick="jumpToPlayer('${t.slug}')">
+        <span class="take-pct">${t.p}%</span>
+        <span class="take-body"><b>${esc(displayName(t.slug))}</b> on ${esc(symbol(t.m))}</span>
+        ${tag}
+      </div>`;
+    }).join("") + `</div><div class="chart-note">The boldest forecasts of the season (furthest from 50%), and whether they paid off.</div></div>`;
+  } else {
+    body += `<div class="card"><div class="notice">No forecasts in this scope yet.</div></div>`;
+  }
+
+  // Best & worst single calls
+  body += `<h2 class="section">Best calls &amp; biggest blunders</h2>`;
+  const sc = singleCalls();
+  if (sc.best.length) {
+    const callRow = r => `<div class="call-row" onclick="jumpToPlayer('${r.slug}')"><span class="call-who"><b>${esc(displayName(r.slug))}</b> &middot; ${esc(symbol(r.m))}</span><span class="call-meta">${r.p}% &middot; <span class="${r.outcome==="YES"?"y":"n"}">${r.outcome}</span> &middot; ${r.b.toFixed(2)}</span></div>`;
+    body += `<div class="card two-col">
+      <div><div class="col-h">Nostradamus &middot; best calls</div>${sc.best.map(callRow).join("")}</div>
+      <div><div class="col-h">Heartbreakers &middot; worst calls</div>${sc.worst.map(callRow).join("")}</div>
+    </div>`;
+  } else {
+    body += `<div class="card"><div class="notice">Appears once markets have resolved.</div></div>`;
+  }
+
+  // Crowd vs reality
+  body += `<h2 class="section">The crowd vs reality</h2>`;
+  const cs = crowdScore();
+  if (cs.total) {
+    body += `<div class="card"><div class="crowd-head">The crowd consensus called <b>${cs.correct}</b> of <b>${cs.total}</b> markets right${cs.rate!==null?` <span class="muted2">(${Math.round(cs.rate*100)}%)</span>`:""}.</div>`;
+    if (cs.wrong.length) {
+      body += `<div class="col-h" style="margin-top:12px">Where the crowd was most wrong</div>` + cs.wrong.map(w =>
+        `<div class="call-row"><span class="call-who">${esc(symbol(w.m))}</span><span class="call-meta">crowd ${w.avg}% &middot; actually <span class="${w.m.outcome==="YES"?"y":"n"}">${w.m.outcome}</span></span></div>`
+      ).join("");
+    } else {
+      body += `<div class="chart-note">The crowd got every resolved market right. Spooky.</div>`;
+    }
+    body += `</div>`;
+  } else {
+    body += `<div class="card"><div class="notice">Appears once markets have resolved.</div></div>`;
+  }
+
+  // Per-question detail
+  body += `<h2 class="section">Every market &middot; every forecast</h2>`;
+  if (markets.length) {
+    const order = markets.slice().sort((a,b)=>{
+      const sa = effectiveStatus(a)==="resolved"?2:(effectiveStatus(a)==="closed"?1:0);
+      const sb = effectiveStatus(b)==="resolved"?2:(effectiveStatus(b)==="closed"?1:0);
+      return sa-sb;
+    });
+    body += `<div class="card chart-card">` + order.map(svgDotPlot).join("") + `<div class="chart-note">Each dot is one person's forecast (click to open them). Green = correct side, red = wrong side once resolved. Dashed line = crowd consensus.</div></div>`;
+  } else {
+    body += `<div class="card"><div class="notice">No markets in this scope.</div></div>`;
+  }
+
+  const who = `<div class="whoami">analytics &middot; the Oracle <span class="linkish" onclick="closeAnalytics()">&larr; back to exchange</span></div>`;
+  $app.innerHTML = who
+    + `<div class="scope-bar">${tabs}</div>`
+    + body;
+  document.getElementById("modal-root").innerHTML = "";
+}
+
+// ================= PLAYER PROFILE (clickable from leaderboard) =================
+// Cross-season profile. Trophies come from COMPLETED (archived) seasons only, so an
+// award belongs to whoever held it at season's end, not transiently mid-season.
+// Guess history shows resolved markets only (public via resolved cards), so opening
+// another player's profile never leaks anyone's pending forecast.
+
+function profileTrophies(slug) {
+  const out = [];
+  (D().seasons||[]).filter(s => s.status !== "current").forEach(s => {
+    const lb = leaderboard(seasonMarkets(s.season_id));
+    const won = (lb.byPerson && lb.byPerson[slug]) || [];
+    won.forEach(k => out.push({ key: k, label: AWARD_LABEL[k], season: s.label }));
+  });
+  return out;
+}
+function personSeasonResolved(slug, seasonId) {
+  return seasonMarkets(seasonId)
+    .filter(m => m.status === "resolved" && m.outcome && (slug in forecastsFor(m.id)))
+    .map(m => { const p = forecastsFor(m.id)[slug]; return { m, p, outcome: m.outcome, b: brier(p, m.outcome) }; });
+}
+function personAllResolvedRows(slug) {
+  const rows = [];
+  (D().markets||[]).forEach(m => {
+    if (isVoid(m) || m.status !== "resolved" || !m.outcome) return;
+    const fs = forecastsFor(m.id);
+    if (slug in fs) rows.push({ p: fs[slug], outcome: m.outcome });
+  });
+  return rows;
+}
+
+function profileModalHtml(slug) {
+  const life = personStats(slug, allLiveMarkets());
+  const allRec = personAllResolvedRows(slug);
+  const boldnessRows = [];
+  (D().markets||[]).forEach(m => { if (isVoid(m)) return; const fs = forecastsFor(m.id); if (slug in fs) boldnessRows.push(fs[slug]); });
+  const boldness = boldnessRows.length ? boldnessRows.reduce((a,p)=>a+Math.abs(p-50),0)/boldnessRows.length : null;
+
+  // trophies (completed seasons)
+  const trophies = profileTrophies(slug);
+  const trophyHtml = trophies.length
+    ? `<div class="award-list">` + trophies.map(t => `<span class="award-pill">${esc(t.label)} <span class="aw-season">| ${esc(t.season)}</span></span>`).join("") + `</div>`
+    : `<p class="muted2" style="font-size:13px;margin:6px 0 0">No trophies yet. Awards are granted when a season ends.</p>`;
+
+  // per-season resolved guess history (current first, then archived), newest seasons on top
+  const seasons = (D().seasons||[]).slice().sort((a,b)=> (a.status==="current"?-1:b.status==="current"?1:0));
+  let seasonsHtml = "";
+  seasons.forEach(s => {
+    const rec = personSeasonResolved(slug, s.season_id);
+    if (!rec.length) return;
+    const avg = rec.reduce((a,r)=>a+r.b,0)/rec.length;
+    const rows = rec.slice().sort((a,b)=>a.b-b.b).map(r =>
+      `<tr><td>${esc(symbol(r.m))}</td><td style="text-align:right">${r.p}%</td><td style="text-align:center"><span class="${r.outcome==="YES"?"y":"n"}">${r.outcome}</span></td><td style="text-align:right">${r.b.toFixed(2)}</td></tr>`
+    ).join("");
+    seasonsHtml += `<div class="ps-season"><div class="ps-head"><span>${esc(s.label)}${s.status==="current"?` <span class="muted2">(in progress)</span>`:""}</span><span class="ps-avg">avg ${avg.toFixed(2)}</span></div>
+      <table class="pp-table"><thead><tr><th>market</th><th style="text-align:right">forecast</th><th style="text-align:center">outcome</th><th style="text-align:right">brier</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  });
+  if (!seasonsHtml) seasonsHtml = `<div class="notice">No resolved forecasts yet.</div>`;
+
+  return `<div class="modal-bg" onclick="if(event.target===this)closeProfile()">
+    <div class="modal" role="dialog" aria-label="Profile">
+      <h3>${esc(displayName(slug))}</h3>
+      <div class="m-sub">lifetime record</div>
+      ${(slug === ME && myRole() === "player") ? statusEditorHtml() : ""}
+      <div class="pp-stats">
+        <div><div class="pp-v">${life.avg!==null?life.avg.toFixed(2):"&mdash;"}</div><div class="pp-l">avg brier</div></div>
+        <div><div class="pp-v">${boldness!==null?boldness.toFixed(0):"&mdash;"}</div><div class="pp-l">boldness</div></div>
+        <div><div class="pp-v">${life.n}</div><div class="pp-l">resolved</div></div>
+        <div><div class="pp-v">${seasonsPlayedBy(slug)}</div><div class="pp-l">seasons</div></div>
+      </div>
+      <h4>Trophy case</h4>
+      ${trophyHtml}
+      <h4>Calibration &middot; lifetime</h4>
+      ${allRec.length?svgCalibration(allRec):`<div class="notice">No resolved forecasts yet.</div>`}
+      <div class="chart-note">Closer to the dashed line = better calibrated. Dot size = number of forecasts in that band.</div>
+      <h4>Forecasts by season</h4>
+      ${seasonsHtml}
+      <button class="modal-close" onclick="closeProfile()">Close</button>
+    </div>
+  </div>`;
+}
+
+function statusEditorHtml() {
+  const p = DATA.people.find(x => x.slug === ME);
+  const cur = p ? (p.status || "") : "";
+  return `<div class="status-editor">
+    <div class="pg-label">your status</div>
+    <div class="status-row">
+      <input type="text" id="status-input" maxlength="60" value="${esc(cur)}" placeholder="a short line shown under your name" oninput="document.getElementById('status-count').textContent=(60-this.value.length)">
+      <button class="status-save" onclick="saveStatus()">Save</button>
+    </div>
+    <div class="status-hint"><span id="status-count">${60 - cur.length}</span> characters left <span id="status-msg"></span></div>
+  </div>`;
+}
+
+async function saveStatus() {
+  const inp = document.getElementById("status-input");
+  const msg = document.getElementById("status-msg");
+  const btn = document.querySelector(".status-save");
+  if (!inp) return;
+  const val = inp.value.replace(/\s+/g, " ").trim().slice(0, 60);
+  btn.disabled = true; btn.textContent = "Saving\u2026"; if (msg) msg.textContent = "";
+  try {
+    const res = await fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "status", name: ME, status: val }) });
+    const out = await res.json();
+    if (out.ok) {
+      const p = DATA.people.find(x => x.slug === ME); if (p) p.status = (out.status !== undefined ? out.status : val);
+      render();              // refresh leaderboard sublines
+      openProfile(ME);       // re-open profile with saved value
+    } else {
+      btn.disabled = false; btn.textContent = "Save"; if (msg) msg.textContent = " &middot; " + (out.error || "could not save");
+    }
+  } catch (err) {
+    btn.disabled = false; btn.textContent = "Save"; if (msg) msg.textContent = " &middot; couldn't reach the exchange";
+  }
+}
+
 async function init() {
   try { const res = await fetch(API_URL); DATA = await res.json(); }
   catch (err) { $app.innerHTML = `<div class="notice" style="margin-top:20px">Couldn't reach the data service. It may be waking up; refresh in a few seconds.</div>`; return; }
-  const cs = currentSeason();
-  viewSeasonId = cs ? cs.season_id : null;
+  // Resolve identity against the real people tab (GUEST still false, so D() === DATA here).
   const urlName = new URLSearchParams(location.search).get("name");
   const stored = localStorage.getItem("mm_name");
   const valid = s => s && DATA.people.some(p => p.slug === s);
   if (valid(urlName)) { ME = urlName; localStorage.setItem("mm_name", urlName); }
   else if (valid(stored)) { ME = stored; }
+  // If this person is a guest, swap in sealed sample data before anything reads a season.
+  if (myRole() === "guest") { GUEST_DATA = buildGuestData(DATA); GUEST = true; }
+  const cs = currentSeason();
+  viewSeasonId = cs ? cs.season_id : null;
   render();
 }
 
-document.addEventListener("keydown", function(e){ if (e.key === "Escape") { closeHelp(); closeLeaderboard(); } });
+document.addEventListener("keydown", function(e){ if (e.key === "Escape") { closeHelp(); closeLeaderboard(); closeProfile(); } });
+(function(){ const v = document.getElementById("ver"); if (v) v.textContent = "v" + VERSION; })();
 init();
 </script>
 </body>
