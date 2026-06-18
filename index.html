@@ -44,7 +44,7 @@
   a, .linkish { color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
 
-  .masthead { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; padding-bottom: 14px; border-bottom: 4px double var(--line-strong); }
+  .masthead { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; padding-bottom: 14px; margin-bottom: 16px; border-bottom: 4px double var(--line-strong); }
   .brand { font-family: var(--serif); font-size: clamp(30px, 8.5vw, 38px); line-height: 1.1; letter-spacing: 0.045em; word-spacing: 0.08em; }
   .tagline { font-family: var(--serif); font-style: italic; color: var(--muted); font-size: 16px; margin-top: 2px; }
   .est { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint); text-align: right; line-height: 1.8; }
@@ -130,8 +130,8 @@
   .quality-stats .q-v { font-size: 14px; margin-top: 1px; }
   .field-line { font-size: 13px; color: var(--muted); margin-top: 10px; padding-top: 8px; border-top: 1px dotted var(--line); }
   .field-line b { color: var(--ink); }
-  .camp-legend { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 12px; }
-  .camp-tag { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink); }
+  .camp-legend { display: flex; flex-wrap: wrap; gap: 8px 10px; margin-top: 12px; }
+  .camp-tag { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink); background: rgba(255,255,255,0.045); padding: 4px 9px; border-radius: 7px; }
   .camp-dot { width: 9px; height: 9px; border-radius: 2px; display: inline-block; flex: none; }
   @media (max-width: 640px) { .quality-stats { grid-template-columns: 1fr; } }
   .pp-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin: 14px 0 6px; }
@@ -423,8 +423,22 @@
         Rank impact recomputes each player's leaderboard place with and without a
         single forecast in their average (others fixed), so when Brier is bunched
         near the top one call can be worth several ranks. Oracle only.
+   3.15 Clearer Forecaster-camps legend: groups are now labeled (Group 1, 2, ...)
+        with member counts and a chip background, and the explanation spells out
+        what a group means and how its color maps to the grid.
+   3.16 Forecaster camps gains a Map view: classical multidimensional scaling of
+        the correlation distances places similar forecasters near each other in
+        2D, colored by group with soft cluster blobs. Grid (heatmap) and per-person
+        views unchanged. Oracle only.
+   3.17 Camps robustness: correlations now require at least four shared markets
+        (a three-point correlation is almost always +/-1 and meaningless). The Map
+        shows a plain "needs more shared markets" notice instead of a noisy clump
+        when pairs barely overlap, draws groups as convex hulls rather than a giant
+        disc, greys ungrouped players, and nudges overlapping labels apart.
+   3.18 Fix: the sample-data banner sat flush against the masthead's thick double
+        rule; added a gap below the masthead so they no longer crowd.
    ============================================================ */
-const VERSION = "3.14";
+const VERSION = "3.18";
 const API_URL = "https://script.google.com/macros/s/AKfycbwy_2Yv6fgQTlAGdM9UBa3gv9OPOyrOA7P2o7PDtLqHcn3BdSeOCbhrDzI8__s34Fpc/exec";
 
 let DATA = null;
@@ -2203,7 +2217,7 @@ function forecastCorrMatrix() {
   const corr = (a, b) => {
     const xs = [], ys = [];
     markets.forEach(m => { const va = vec[a][m.id], vb = vec[b][m.id]; if (va !== undefined && vb !== undefined) { xs.push(va); ys.push(vb); } });
-    const n = xs.length; if (n < 3) return null;
+    const n = xs.length; if (n < 4) return null;
     const mx = xs.reduce((p, q) => p + q, 0) / n, my = ys.reduce((p, q) => p + q, 0) / n;
     let sxy = 0, sxx = 0, syy = 0;
     for (let i = 0; i < n; i++) { const dx = xs[i] - mx, dy = ys[i] - my; sxy += dx * dy; sxx += dx * dx; syy += dy * dy; }
@@ -2239,7 +2253,7 @@ function campClusters() {
   const { slugs, players, M } = forecastCorrMatrix();
   const n = slugs.length;
   if (n < 3) return { ok: false, msg: "Appears once at least three players have forecast." };
-  if (!M.some((row, i) => row.some((v, j) => i !== j && v !== null))) return { ok: false, msg: "Appears once players share at least three forecast markets." };
+  if (!M.some((row, i) => row.some((v, j) => i !== j && v !== null))) return { ok: false, msg: "Appears once players share at least four forecast markets." };
   const dist = (i, j) => { const v = M[i][j]; return v === null ? 1 : (1 - v) / 2; };  // corr [-1,1] -> dist [0,1]
   let groups = slugs.map((_, i) => [i]);
   const mergeDist = []; const snapshots = {}; snapshots[n] = groups.map(g => g.slice());
@@ -2298,26 +2312,124 @@ function svgCorrHeatmap(cl) {
   });
   return `<div class="h2h-wrap"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">${cells}${seps}${labels}</svg></div>`;
 }
-function campLegend(cl) {
+function campGroupChips(cl) {
   if (!cl || !cl.ok) return "";
   const cc = ci => CHART_COLORS[ci % CHART_COLORS.length];
-  const named = cl.clusters.map((g, ci) => g.length >= 2 ? `<span class="camp-tag"><span class="camp-dot" style="background:${cc(ci)}"></span>${g.map(s => esc(displayName(s))).join(", ")}</span>` : null).filter(Boolean);
+  const multi = cl.clusters.map((g, ci) => ({ g, ci })).filter(o => o.g.length >= 2);
   const loners = cl.clusters.filter(g => g.length < 2).reduce((a, g) => a.concat(g), []);
   let html = `<div class="camp-legend">`;
-  html += named.join("");
-  if (loners.length) html += `<span class="camp-tag"><span class="camp-dot" style="background:var(--faint)"></span><span class="muted2">on their own: ${loners.map(s => esc(displayName(s))).join(", ")}</span></span>`;
+  html += multi.map((o, n) => `<span class="camp-tag"><span class="camp-dot" style="background:${cc(o.ci)}"></span><b>Group ${n + 1}</b> <span class="muted2">(${o.g.length})</span> ${o.g.map(s => esc(displayName(s))).join(", ")}</span>`).join("");
+  if (loners.length) html += `<span class="camp-tag"><span class="camp-dot" style="background:var(--faint)"></span><span class="muted2">no clear group:</span> ${loners.map(s => esc(displayName(s))).join(", ")}</span>`;
   html += `</div>`;
-  html += cl.weak
-    ? `<div class="chart-note">Separation is weak: these groupings are loose and the room is fairly uniform. Read them as tendencies, not hard camps.</div>`
-    : `<div class="chart-note">${cl.k} groupings, found by clustering the correlations. People inside a group forecast more like each other than like the rest. Cell colors run purple (move together) to red (move opposite); lines mark the group boundaries.</div>`;
   return html;
+}
+function campLegend(cl) {
+  if (!cl || !cl.ok) return "";
+  const multi = cl.clusters.filter(g => g.length >= 2);
+  let html = campGroupChips(cl);
+  if (!multi.length) {
+    html += `<div class="chart-note">No clear groups formed: everyone's forecasts look fairly similar, so no bloc separated out. Treat the colors above as individuals, not camps.</div>`;
+  } else if (cl.weak) {
+    html += `<div class="chart-note"><b>A group is a set of people whose forecasts tend to move together</b> across the markets they both forecast. These ones are loose, though: people clump only a little and the room is fairly uniform, so read them as mild tendencies rather than real camps. Each group's color matches its names along the edges of the grid above.</div>`;
+  } else {
+    html += `<div class="chart-note"><b>A group is a set of people whose forecasts tend to move together</b> across the markets they both forecast, more so than with anyone outside the group. They were found by clustering how correlated everyone is with everyone else. Each group has a color, which matches its names along the top and left edges of the grid and the boxed block on the diagonal. (In the grid itself, purple means two people moved together, red means they moved opposite.)</div>`;
+  }
+  return html;
+}
+// 2D map of the forecasters via classical multidimensional scaling on the correlation distances
+// typical number of markets a pair of players both forecast (data-sufficiency gauge)
+function pairOverlapMedian() {
+  const slugs = playersInScope().map(p => p.slug);
+  const markets = analyticsMarkets();
+  const sets = {}; slugs.forEach(s => sets[s] = new Set());
+  markets.forEach(m => { const fs = forecastsFor(m.id); slugs.forEach(s => { if (s in fs) sets[s].add(m.id); }); });
+  const counts = [];
+  for (let i = 0; i < slugs.length; i++) for (let j = i + 1; j < slugs.length; j++) { let c = 0; sets[slugs[i]].forEach(id => { if (sets[slugs[j]].has(id)) c++; }); counts.push(c); }
+  counts.sort((a, b) => a - b);
+  return counts.length ? counts[Math.floor(counts.length / 2)] : 0;
+}
+function convexHull(points) {
+  if (points.length < 3) return points.slice();
+  const pts = points.slice().sort((a, b) => a.x - b.x || a.y - b.y);
+  const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+  const lower = []; for (const p of pts) { while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) lower.pop(); lower.push(p); }
+  const upper = []; for (let i = pts.length - 1; i >= 0; i--) { const p = pts[i]; while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) upper.pop(); upper.push(p); }
+  lower.pop(); upper.pop(); return lower.concat(upper);
+}
+function svgCampMap(cl) {
+  if (!cl) cl = campClusters();
+  if (!cl || !cl.ok) return `<div class="notice">${cl && cl.msg ? cl.msg : "Appears once at least four players have forecast."}</div>`;
+  if (pairOverlapMedian() < 5)
+    return `<div class="notice">A 2D map needs more shared markets before the positions mean anything. Most pairs here have only a few markets in common, so a correlation can swing to almost anything and the layout would be mostly noise. This fills in as more questions are added and resolve; the Grid and per-person views work in the meantime.</div>`;
+  const { slugs, players, M, clusterOf } = cl;
+  const n = slugs.length;
+  const D = M.map((row, i) => row.map((v, j) => i === j ? 0 : (v === null ? 1 : (1 - v) / 2)));
+  const P = D.map(row => row.map(d => d * d));
+  const rowMean = P.map(r => r.reduce((a, b) => a + b, 0) / n);
+  const grand = rowMean.reduce((a, b) => a + b, 0) / n;
+  const B = P.map((row, i) => row.map((v, j) => -0.5 * (v - rowMean[i] - rowMean[j] + grand)));
+  const shift = Math.max(...B.map(row => row.reduce((s, v) => s + Math.abs(v), 0)), 1);
+  const topEig = A => {
+    let x = A.map((_, i) => Math.sin(i * 1.3 + 0.7));
+    const nrm = v => { const m = Math.sqrt(v.reduce((s, q) => s + q * q, 0)) || 1; return v.map(q => q / m); };
+    x = nrm(x);
+    for (let it = 0; it < 200; it++) x = nrm(A.map(row => row.reduce((s, a, j) => s + a * x[j], 0)));
+    const Ax = A.map(row => row.reduce((s, a, j) => s + a * x[j], 0));
+    return { vec: x, val: x.reduce((s, v, i) => s + v * Ax[i], 0) };
+  };
+  const A1 = B.map((row, i) => row.map((v, j) => v + (i === j ? shift : 0)));
+  const e1 = topEig(A1);
+  const A2 = A1.map((row, i) => row.map((v, j) => v - e1.val * e1.vec[i] * e1.vec[j]));
+  const e2 = topEig(A2);
+  const sx = Math.sqrt(Math.max(e1.val - shift, 0)), sy = Math.sqrt(Math.max(e2.val - shift, 0));
+  const xs = e1.vec.map(v => v * sx), ys = e2.vec.map(v => v * sy);
+  if (Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) < 1e-6)
+    return `<div class="notice">Everyone is forecasting almost identically, so there's no spread to map yet.</div>`;
+  const W = 560, H = 430, pad = 54;
+  const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+  const spanX = (maxX - minX) || 1, spanY = (maxY - minY) || 1;
+  const scale = Math.min((W - 2 * pad) / spanX, (H - 2 * pad) / spanY);
+  const SX = x => W / 2 + (x - (maxX + minX) / 2) * scale;
+  const SY = y => H / 2 - (y - (maxY + minY) / 2) * scale;
+  const cc = ci => CHART_COLORS[ci % CHART_COLORS.length];
+  const sizeOf = s => (cl.clusters[clusterOf[s]] || []).length;
+  const colorOf = s => sizeOf(s) >= 2 ? cc(clusterOf[s]) : "var(--faint)";
+  const pts = slugs.map((s, i) => ({ s, name: (players.find(p => p.slug === s) || {}).display_name || s, x: SX(xs[i]), y: SY(ys[i]) }));
+  let hulls = "";
+  cl.clusters.forEach((g, ci) => {
+    if (g.length < 2) return;
+    const mem = g.map(s => pts.find(p => p.s === s));
+    if (g.length >= 3) {
+      const mx = mem.reduce((a, p) => a + p.x, 0) / mem.length, my = mem.reduce((a, p) => a + p.y, 0) / mem.length;
+      const poly = convexHull(mem).map(p => { const dx = p.x - mx, dy = p.y - my, len = Math.hypot(dx, dy) || 1; return `${(p.x + dx / len * 14).toFixed(1)},${(p.y + dy / len * 14).toFixed(1)}`; }).join(" ");
+      hulls += `<polygon points="${poly}" fill="${cc(ci)}" fill-opacity="0.10" stroke="${cc(ci)}" stroke-opacity="0.28"></polygon>`;
+    } else {
+      hulls += `<line x1="${mem[0].x.toFixed(1)}" y1="${mem[0].y.toFixed(1)}" x2="${mem[1].x.toFixed(1)}" y2="${mem[1].y.toFixed(1)}" stroke="${cc(ci)}" stroke-opacity="0.18" stroke-width="18" stroke-linecap="round"></line>`;
+    }
+  });
+  // nudge overlapping labels apart vertically
+  const LH = 12, placed = [];
+  pts.slice().sort((a, b) => a.y - b.y).forEach(p => {
+    let ly = p.y + 3, guard = 0, moved = true;
+    while (moved && guard++ < 60) { moved = false; for (const q of placed) { if (Math.abs((p.x + 9) - q.x) < 42 && Math.abs(ly - q.y) < LH) { ly = q.y + LH; moved = true; } } }
+    placed.push({ x: p.x + 9, y: ly }); p.labelY = Math.min(ly, H - 4);
+  });
+  let dots = "";
+  pts.forEach(p => {
+    const off = Math.abs(p.labelY - (p.y + 3)) > 8;
+    dots += `<g onclick="selectCampPerson('${p.s}')" style="cursor:pointer">`;
+    if (off) dots += `<line x1="${(p.x + 5).toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${(p.x + 8).toFixed(1)}" y2="${(p.labelY - 3).toFixed(1)}" stroke="var(--faint)" stroke-opacity="0.4"></line>`;
+    dots += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="6" fill="${colorOf(p.s)}"><title>${esc(p.name)}</title></circle>`;
+    dots += `<text x="${(p.x + 9).toFixed(1)}" y="${p.labelY.toFixed(1)}" font-family="var(--mono)" font-size="9" fill="var(--muted)">${esc(initials(p.name))}</text></g>`;
+  });
+  return `<div class="h2h-wrap"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">${hulls}${dots}</svg></div>`;
 }
 function svgPersonCorr(slug) {
   const { slugs, players, M } = forecastCorrMatrix();
   const i = slugs.indexOf(slug);
   if (i < 0) return `<div class="notice">No data for this player.</div>`;
   const rows = slugs.map((s, j) => j === i ? null : { slug: s, name: (players.find(p => p.slug === s) || {}).display_name || s, r: M[i][j] }).filter(o => o && o.r !== null).sort((a, b) => b.r - a.r);
-  if (!rows.length) return `<div class="pp-head-row"><h3 class="pp-name" style="font-size:17px">${esc(displayName(slug))}</h3></div><div class="notice">${esc(displayName(slug))} hasn't shared at least three markets with anyone yet.</div>`;
+  if (!rows.length) return `<div class="pp-head-row"><h3 class="pp-name" style="font-size:17px">${esc(displayName(slug))}</h3></div><div class="notice">${esc(displayName(slug))} hasn't shared at least four markets with anyone yet.</div>`;
   const W = 560, rowH = 21, padT = 8, padB = 8, padL = 124;
   const H = padT + rows.length * rowH + padB;
   const half = (W - padL - 44) / 2, cx = padL + half;
@@ -2342,20 +2454,28 @@ function corrPairs() {
 }
 // ---------- camps selector (heatmap+clusters, or one person's correlations) ----------
 function selectedCampPerson() {
-  if (analyticsCampPerson === "all") return "all";
+  if (analyticsCampPerson === "all" || analyticsCampPerson === "map") return analyticsCampPerson;
   const ids = playersInScope().map(p => p.slug);
   return ids.indexOf(analyticsCampPerson) >= 0 ? analyticsCampPerson : "all";
 }
 function campButtonsHtml() {
   const players = playersInScope(); if (players.length < 3) return "";
   const sel = selectedCampPerson();
-  let b = `<button class="player-chip${sel === "all" ? " on" : ""}" data-camp="all" onclick="selectCampPerson('all')">All</button>`;
+  let b = `<button class="player-chip${sel === "all" ? " on" : ""}" data-camp="all" onclick="selectCampPerson('all')">Grid</button>`;
+  b += `<button class="player-chip${sel === "map" ? " on" : ""}" data-camp="map" onclick="selectCampPerson('map')">Map</button>`;
   b += players.map(p => `<button class="player-chip${p.slug === sel ? " on" : ""}" data-camp="${p.slug}" onclick="selectCampPerson('${p.slug}')">${esc(p.display_name)}</button>`).join("");
   return b;
 }
 function campPanelHtml() {
   const sel = selectedCampPerson();
   if (sel === "all") { const cl = campClusters(); return svgCorrHeatmap(cl) + campLegend(cl); }
+  if (sel === "map") {
+    const cl = campClusters();
+    if (!cl || !cl.ok) return `<div class="notice">${cl && cl.msg ? cl.msg : "Appears once at least four players have forecast."}</div>`;
+    const m = svgCampMap(cl);
+    if (m.indexOf('class="notice"') >= 0) return m;
+    return m + `<div class="chart-note">Each dot is a player; the closer two dots sit, the more alike their forecasts have been. Shaded shapes mark the groups the clustering found, and grey dots didn't land in a group. Up/down and left/right mean nothing on their own &mdash; only the distance between people carries information. Click a dot to see that person's correlations.</div>` + campGroupChips(cl);
+  }
   return svgPersonCorr(sel);
 }
 function selectCampPerson(id) {
@@ -2598,7 +2718,7 @@ function renderAnalytics() {
     body += `<h2 class="section">Forecaster camps</h2>`;
     body += `<div class="card chart-card"><div class="player-chips" id="camp-buttons">${campButtonsHtml()}</div>`
       + `<div id="camp-panel" class="player-panel">${campPanelHtml()}</div>`
-      + `<div class="chart-note">Built from the forecasts themselves, so it appears before any market resolves. Pick a name to see that person's correlation with everyone, or <b>All</b> for the full map with detected groupings. Hover any cell for the pair and their exact correlation.</div></div>`;
+      + `<div class="chart-note">Built from the forecasts themselves, so it appears before any market resolves. <b>Map</b> places similar forecasters near each other; <b>Grid</b> shows every pairwise correlation with the detected groups; or pick a name to see one person against everyone. Hover any point or cell for the exact pair.</div></div>`;
     const cp = corrPairs();
     if (cp.closest.length) {
       const prow = o => `<div class="call-row" onclick="selectCampPerson('${o.a}')"><span class="call-who">${esc(displayName(o.a))} &harr; ${esc(displayName(o.b))}</span><span class="call-meta">${o.r.toFixed(2)}</span></div>`;
