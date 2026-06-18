@@ -87,6 +87,7 @@
   .disag-track { flex: 1; height: 8px; background: var(--no-tint); border-radius: 4px; overflow: hidden; }
   .disag-fill { height: 100%; background: var(--accent); }
   .disag-val { font-family: var(--mono); font-size: 11px; color: var(--ink); width: 42px; text-align: right; }
+  .disag-flip { font-family: var(--mono); font-size: 10px; color: var(--faint); width: 58px; text-align: right; flex-shrink: 0; white-space: nowrap; }
   .player-chips { display: flex; flex-wrap: wrap; gap: 8px; }
   .player-chip { font-family: var(--sans); font-size: 13px; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; cursor: pointer; }
   .player-chip.on { border-color: var(--accent); color: var(--accent); background: var(--accent-tint); }
@@ -124,6 +125,15 @@
   .call-who { font-size: 13px; }
   .call-meta { font-family: var(--mono); font-size: 11px; color: var(--muted); white-space: nowrap; }
   .crowd-head { font-family: var(--serif); font-size: 20px; }
+  .quality-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; margin-top: 12px; }
+  .quality-stats .q-l { font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); }
+  .quality-stats .q-v { font-size: 14px; margin-top: 1px; }
+  .field-line { font-size: 13px; color: var(--muted); margin-top: 10px; padding-top: 8px; border-top: 1px dotted var(--line); }
+  .field-line b { color: var(--ink); }
+  .camp-legend { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 12px; }
+  .camp-tag { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink); }
+  .camp-dot { width: 9px; height: 9px; border-radius: 2px; display: inline-block; flex: none; }
+  @media (max-width: 640px) { .quality-stats { grid-template-columns: 1fr; } }
   .pp-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin: 14px 0 6px; }
   .pp-v { font-family: var(--mono); font-size: 22px; color: var(--ink); }
   .pp-l { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); margin-top: 2px; }
@@ -373,8 +383,48 @@
         calls, crowd-vs-reality scorecard, lead-change markers on standings.
    3.5  Refinements: selectable consensus-settles market, wider guessing bins,
         cold-load messaging, version ticker.
+   3.6  Oracle forecaster-quality layer (Group 1): per-player Brier decomposition
+        (reliability / resolution / uncertainty), calibration-slope overconfidence
+        number, forecast signature (range, round-number habit, YES-lean); plus a
+        population layer — the skill plane, calibration & discrimination
+        leaderboards, and a group over/under-confidence distribution. Oracle only.
+   3.7  Oracle luck-vs-skill layer (Group 2): paired bootstrap over resolved
+        markets giving 90% confidence intervals on every player's Brier, and a
+        pairwise-superiority matrix (probability each player's true skill beats
+        each other's). Seeded for reproducibility. Oracle only.
+   3.8  Oracle collective-intelligence layer (Group 3): crowd-vs-individuals with
+        the exact diversity-prediction decomposition, leave-one-out marginal
+        contribution (who lifts vs drags the crowd), and a crowd-size saturation
+        curve. Plus: "every market / every forecast" now toggles between the
+        stacked all-view and a single question, and "how consensus settles" gains
+        an All overlay of every market's consensus line. Oracle only.
+   3.9  Oracle population & typology layer (Group 4): per-player percentile rank
+        vs the field (skill / calibration / boldness), group spread histograms,
+        a bold-vs-accurate typology scatter, and a forecast-correlation heatmap
+        spectrally reordered to surface "camps". Oracle only.
+   3.10 Oracle dynamics layer (Group 5): per-person herding (consensus proximity),
+        the order effect (do later forecasters herd?) with early-vs-late accuracy,
+        per-market consensus volatility and 50%-flips, and bellwether detection
+        (early reads the crowd converged to). All timestamp-based. Oracle only.
+   3.11 Oracle question-writer's-mirror layer (Group 6): YES base rate & question
+        balance, hardest/easiest markets by average error, a disagreement-vs-error
+        relationship, and a regularized Rasch model estimating forecaster ability
+        and market difficulty jointly. Plus: "Forecaster camps" (correlation
+        heatmap) now renders before any market resolves, since it needs only the
+        forecasts, not outcomes. Oracle only.
+   3.12 Forecaster camps expanded: full display names in hover (initials collide),
+        agglomerative clustering that detects and color-labels groupings with a
+        legend, a per-person selector showing one player's correlation with every
+        other, a closest/most-opposite pairs list, and raised column labels so
+        they no longer overlap the grid. Oracle only.
+   3.13 Fix: in "Which markets swung the most" the flip count was tucked into the
+        fixed-width market label and got clipped; moved it to its own column.
+   3.14 "Best calls & biggest blunders" gains a By Brier / By rank impact toggle.
+        Rank impact recomputes each player's leaderboard place with and without a
+        single forecast in their average (others fixed), so when Brier is bunched
+        near the top one call can be worth several ranks. Oracle only.
    ============================================================ */
-const VERSION = "3.5";
+const VERSION = "3.14";
 const API_URL = "https://script.google.com/macros/s/AKfycbwy_2Yv6fgQTlAGdM9UBa3gv9OPOyrOA7P2o7PDtLqHcn3BdSeOCbhrDzI8__s34Fpc/exec";
 
 let DATA = null;
@@ -386,7 +436,10 @@ let GUEST_DATA = null;     // synthetic sample dataset for the guest preview
 let showAnalytics = false; // oracle analytics screen open
 let analyticsScope = null; // season_id being analyzed, or "all" for all-time
 let analyticsPerson = null;// slug of a player whose profile is open, or null
-let analyticsStabMarket = null; // market id selected in the consensus-settles panel
+let analyticsStabMarket = null; // market id selected in the consensus-settles panel ("all" = overlay)
+let analyticsDotMarket = "all"; // market id selected in every-market panel ("all" = stacked)
+let analyticsCampPerson = "all"; // player selected in forecaster-camps panel ("all" = heatmap)
+let analyticsCallMode = "brier"; // best/worst calls view: "brier" or "rank"
 
 // All rendering reads through D(): real data normally, sealed sample data for guests.
 function D() { return GUEST ? GUEST_DATA : DATA; }
@@ -1386,6 +1439,7 @@ function playerPanelHtml(slug) {
       <div><div class="pp-chart-h">calibration</div>${calRows.length?svgCalibration(calRows):`<div class="notice">No resolved forecasts yet.</div>`}</div>
       <div><div class="pp-chart-h">confidence distribution</div>${svgConfidence(probs)}</div>
     </div>
+    ${qualityBlockHtml(slug)}
     <div class="pp-chart-h" style="margin-top:14px">every forecast</div>
     <table class="pp-table"><thead><tr><th>market</th><th style="text-align:right">forecast</th><th style="text-align:center">outcome</th><th style="text-align:right">brier</th></tr></thead><tbody>${recRows}</tbody></table>`;
 }
@@ -1412,6 +1466,7 @@ function stabMarketsList() {
     .map(o => o.m);
 }
 function selectedStabMarketId() {
+  if (analyticsStabMarket === "all") return "all";
   const ids = stabMarketsList().map(m => m.id);
   if (analyticsStabMarket && ids.indexOf(analyticsStabMarket) >= 0) return analyticsStabMarket;
   return ids.length ? ids[0] : null;
@@ -1420,12 +1475,14 @@ function stabButtonsHtml() {
   const list = stabMarketsList();
   if (!list.length) return "";
   const sel = selectedStabMarketId();
-  return list.map(m => `<button class="player-chip${m.id===sel?" on":""}" data-mkt="${m.id}" onclick="selectStabMarket('${m.id}')">${esc(symbol(m).replace("MTO\u00b7",""))}</button>`).join("");
+  let b = `<button class="player-chip${sel === "all" ? " on" : ""}" data-mkt="all" onclick="selectStabMarket('all')">All</button>`;
+  b += list.map(m => `<button class="player-chip${m.id === sel ? " on" : ""}" data-mkt="${m.id}" onclick="selectStabMarket('${m.id}')">${esc(symbol(m).replace("MTO\u00b7", ""))}</button>`).join("");
+  return b;
 }
 function selectStabMarket(id) {
   analyticsStabMarket = id;
   const panel = document.getElementById("stab-panel");
-  if (panel) panel.innerHTML = svgStabilization(marketById(id));
+  if (panel) panel.innerHTML = id === "all" ? svgStabilizationAll() : svgStabilization(marketById(id));
   const btns = document.querySelectorAll("[data-mkt]");
   if (btns && btns.forEach) btns.forEach(b => b.classList.toggle("on", b.dataset && b.dataset.mkt === id));
 }
@@ -1512,6 +1569,72 @@ function singleCalls() {
   return { best: out.slice().sort((a, b) => a.b - b.b).slice(0, 5), worst: out.slice().sort((a, b) => b.b - a.b).slice(0, 5) };
 }
 
+// rank-impact version: how many leaderboard places each single forecast moved that
+// person, holding every other player's average fixed (leave-one-out on the ranking).
+function rankImpactCalls() {
+  const players = playersInScope();
+  const resolved = resolvedInScope();
+  const recs = {}, avgWith = {};
+  players.forEach(p => {
+    const rs = [];
+    resolved.forEach(m => { const fs = forecastsFor(m.id); if (p.slug in fs) rs.push({ m, p: fs[p.slug], b: brier(fs[p.slug], m.outcome) }); });
+    recs[p.slug] = rs;
+    if (rs.length) avgWith[p.slug] = rs.reduce((a, r) => a + r.b, 0) / rs.length;
+  });
+  const avgList = Object.keys(avgWith).map(s => ({ s, a: avgWith[s] }));
+  const items = [];
+  players.forEach(p => {
+    const rs = recs[p.slug]; if (rs.length < 2) return;          // need at least two so an average survives removal
+    const sum = rs.reduce((a, r) => a + r.b, 0), aw = avgWith[p.slug];
+    const belowWith = avgList.filter(o => o.s !== p.slug && o.a < aw).length;
+    rs.forEach(r => {
+      const awo = (sum - r.b) / (rs.length - 1);
+      const belowWithout = avgList.filter(o => o.s !== p.slug && o.a < awo).length;
+      items.push({ slug: p.slug, m: r.m, p: r.p, outcome: r.m.outcome, b: r.b, delta: belowWith - belowWithout });
+    });
+  });
+  return {
+    best: items.filter(i => i.delta < 0).sort((a, b) => a.delta - b.delta).slice(0, 5),
+    worst: items.filter(i => i.delta > 0).sort((a, b) => b.delta - a.delta).slice(0, 5),
+    any: items.length > 0
+  };
+}
+// ---------- best/worst calls toggle (by Brier, or by rank impact) ----------
+function callButtonsHtml() {
+  const m = analyticsCallMode;
+  return `<button class="player-chip${m === "brier" ? " on" : ""}" data-callmode="brier" onclick="selectCallMode('brier')">By Brier</button>`
+    + `<button class="player-chip${m === "rank" ? " on" : ""}" data-callmode="rank" onclick="selectCallMode('rank')">By rank impact</button>`;
+}
+function callsPanelHtml() {
+  if (analyticsCallMode === "rank") {
+    const rc = rankImpactCalls();
+    if (!rc.any) return `<div class="notice">Rank impact appears once players have at least two resolved forecasts.</div>`;
+    const row = gain => r => `<div class="call-row" onclick="jumpToPlayer('${r.slug}')"><span class="call-who"><b>${esc(displayName(r.slug))}</b> &middot; ${esc(symbol(r.m))}</span><span class="call-meta">${r.p}% &middot; <span class="${r.outcome === "YES" ? "y" : "n"}">${r.outcome}</span> &middot; <b>${gain ? "+" : "&minus;"}${Math.abs(r.delta)}</b> rank${Math.abs(r.delta) === 1 ? "" : "s"}</span></div>`;
+    return `<div class="two-col">
+      <div><div class="col-h">most rank earned</div>${rc.best.length ? rc.best.map(row(true)).join("") : `<div class="muted2" style="font-size:13px">No single forecast lifted anyone yet.</div>`}</div>
+      <div><div class="col-h">most rank lost</div>${rc.worst.length ? rc.worst.map(row(false)).join("") : `<div class="muted2" style="font-size:13px">No single forecast sank anyone yet.</div>`}</div>
+    </div>`;
+  }
+  const sc = singleCalls();
+  const row = r => `<div class="call-row" onclick="jumpToPlayer('${r.slug}')"><span class="call-who"><b>${esc(displayName(r.slug))}</b> &middot; ${esc(symbol(r.m))}</span><span class="call-meta">${r.p}% &middot; <span class="${r.outcome === "YES" ? "y" : "n"}">${r.outcome}</span> &middot; ${r.b.toFixed(2)}</span></div>`;
+  return `<div class="two-col">
+    <div><div class="col-h">Nostradamus &middot; best calls</div>${sc.best.map(row).join("")}</div>
+    <div><div class="col-h">Heartbreakers &middot; worst calls</div>${sc.worst.map(row).join("")}</div>
+  </div>`;
+}
+function callsNote() {
+  return analyticsCallMode === "rank"
+    ? `Leaderboard places each single forecast moved that person, recomputed with and without that one market in their average and holding everyone else fixed. When Brier is bunched near the top, one call can be worth several ranks. Left = ranks it earned, right = ranks it cost.`
+    : `The single sharpest and most painful forecasts of the season, by Brier on that one market. A standout here is one forecast, so it is maximally luck-driven.`;
+}
+function selectCallMode(mode) {
+  analyticsCallMode = mode;
+  const panel = document.getElementById("calls-panel"); if (panel) panel.innerHTML = callsPanelHtml();
+  const note = document.getElementById("calls-note"); if (note) note.innerHTML = callsNote();
+  const btns = document.querySelectorAll("[data-callmode]");
+  if (btns && btns.forEach) btns.forEach(b => b.classList.toggle("on", b.dataset && b.dataset.callmode === mode));
+}
+
 // crowd vs reality: how often the consensus was right
 function crowdScore() {
   let correct = 0, total = 0; const wrong = [];
@@ -1524,6 +1647,871 @@ function crowdScore() {
   });
   wrong.sort((a, b) => b.dist - a.dist);
   return { correct, total, rate: total ? correct / total : null, wrong };
+}
+
+// ================= GROUP 1: FORECASTER QUALITY (oracle only) =================
+
+// a player's resolved (probability, outcome) pairs in scope
+function playerPY(slug) {
+  const out = [];
+  resolvedInScope().forEach(m => { const fs = forecastsFor(m.id); if (slug in fs) out.push({ p: fs[slug], y: m.outcome === "YES" ? 1 : 0 }); });
+  return out;
+}
+
+// Murphy decomposition of the Brier score: BS = reliability - resolution + uncertainty
+// (binned by tens; with small samples this reconstructs Brier up to a small binning term)
+function brierDecomp(py) {
+  const n = py.length;
+  if (!n) return null;
+  const obar = py.reduce((s, r) => s + r.y, 0) / n;
+  const unc = obar * (1 - obar);
+  const bins = {};
+  py.forEach(r => { const k = Math.min(4, Math.floor(r.p / 20)); (bins[k] = bins[k] || []).push(r); });
+  let rel = 0, res = 0;
+  Object.values(bins).forEach(arr => {
+    const nk = arr.length;
+    const fk = arr.reduce((s, r) => s + r.p / 100, 0) / nk;
+    const ok = arr.reduce((s, r) => s + r.y, 0) / nk;
+    rel += nk * (fk - ok) * (fk - ok);
+    res += nk * (ok - obar) * (ok - obar);
+  });
+  rel /= n; res /= n;
+  const brier = py.reduce((s, r) => s + (r.p / 100 - r.y) * (r.p / 100 - r.y), 0) / n;
+  return { rel, res, unc, brier, n, obar };
+}
+
+// overconfidence: logistic calibration (Cox) slope & intercept via ridge-stabilized IRLS
+// outcome ~ intercept + slope * logit(forecast). slope<1 overconfident, >1 underconfident.
+function calibFit(py) {
+  if (py.length < 5) return null;
+  const ys = py.map(r => r.y);
+  if (new Set(ys).size < 2) return null; // need both outcomes
+  const xs = py.map(r => { const p = Math.min(0.999, Math.max(0.001, r.p / 100)); return Math.log(p / (1 - p)); });
+  const n = xs.length;
+  let b0 = 0, b1 = 1; const lambda = 1e-3;
+  for (let it = 0; it < 60; it++) {
+    let g0 = 0, g1 = 0, h00 = 0, h01 = 0, h11 = 0;
+    for (let i = 0; i < n; i++) {
+      const eta = b0 + b1 * xs[i];
+      const mu = 1 / (1 + Math.exp(-eta));
+      const w = Math.max(mu * (1 - mu), 1e-6);
+      const r = ys[i] - mu;
+      g0 += r; g1 += r * xs[i];
+      h00 += w; h01 += w * xs[i]; h11 += w * xs[i] * xs[i];
+    }
+    g0 -= lambda * b0; g1 -= lambda * b1; h00 += lambda; h11 += lambda;
+    const det = h00 * h11 - h01 * h01;
+    if (Math.abs(det) < 1e-12) break;
+    const d0 = (h11 * g0 - h01 * g1) / det;
+    const d1 = (-h01 * g0 + h00 * g1) / det;
+    b0 += d0; b1 += d1;
+    if (Math.abs(d0) + Math.abs(d1) < 1e-7) break;
+  }
+  if (!isFinite(b0) || !isFinite(b1)) return null;
+  return { intercept: b0, slope: b1 };
+}
+function slopeWord(s) {
+  if (s === null) return "";
+  if (s < 0.8) return "leans overconfident (forecasts too extreme)";
+  if (s > 1.25) return "leans underconfident (forecasts too cautious)";
+  return "well-scaled confidence";
+}
+
+// individual signature: range usage, round-number anchoring, YES-lean vs base rate
+function playerSignature(slug) {
+  const rec = personRecord(slug);
+  if (!rec.length) return null;
+  const ps = rec.map(r => r.p);
+  const mean = ps.reduce((a, b) => a + b, 0) / ps.length;
+  const sd = Math.sqrt(ps.reduce((a, p) => a + (p - mean) * (p - mean), 0) / ps.length);
+  const roundTens = ps.filter(p => p % 10 === 0).length / ps.length;
+  const atFifty = ps.filter(p => p === 50).length / ps.length;
+  const resolved = rec.filter(r => r.resolved);
+  const baseRate = resolved.length ? resolved.filter(r => r.outcome === "YES").length / resolved.length * 100 : null;
+  return { mean, sd, min: Math.min(...ps), max: Math.max(...ps), roundTens, atFifty, baseRate, lean: baseRate !== null ? mean - baseRate : null };
+}
+
+// population: decomposition + slope for every player in scope
+function allPlayerQuality() {
+  return playersInScope().map(p => {
+    const py = playerPY(p.slug);
+    const d = brierDecomp(py);
+    const f = calibFit(py);
+    return { slug: p.slug, name: p.display_name, d, slope: f ? f.slope : null, intercept: f ? f.intercept : null };
+  }).filter(o => o.d);
+}
+
+// --- Group 1 renderers ---
+function svgDecompBars(d) {
+  const items = [
+    { k: "reliability", v: d.rel, c: "#e0738f", note: "lower = better calibrated" },
+    { k: "resolution", v: d.res, c: "#6ad19a", note: "higher = more discriminating" },
+    { k: "uncertainty", v: d.unc, c: "var(--faint)", note: "difficulty of the events" }
+  ];
+  const max = Math.max(d.rel, d.res, d.unc, 0.25);
+  const W = 320, rh = 22, gap = 16, padL = 86, padR = 44, padT = 6;
+  const H = padT + items.length * (rh + gap);
+  let bars = "";
+  items.forEach((it, i) => {
+    const y = padT + i * (rh + gap);
+    const w = Math.max(1, (it.v / max) * (W - padL - padR));
+    bars += `<text x="${padL - 8}" y="${y + rh / 2 + 4}" text-anchor="end" font-family="var(--mono)" font-size="11" fill="var(--ink)">${it.k}</text>`;
+    bars += `<rect x="${padL}" y="${y}" width="${w.toFixed(1)}" height="${rh}" rx="3" fill="${it.c}" fill-opacity="0.8"></rect>`;
+    bars += `<text x="${(padL + w + 6).toFixed(1)}" y="${y + rh / 2 + 4}" font-family="var(--mono)" font-size="11" fill="var(--muted)">${it.v.toFixed(3)}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart-svg" xmlns="http://www.w3.org/2000/svg">${bars}</svg>`;
+}
+function qualityBlockHtml(slug) {
+  const py = playerPY(slug);
+  const d = brierDecomp(py);
+  if (!d || d.n < 3) return `<div class="pp-chart-h" style="margin-top:14px">forecaster quality</div><div class="notice">Needs a few more resolved forecasts.</div>`;
+  const f = calibFit(py);
+  const sig = playerSignature(slug);
+  const slopeLine = f
+    ? `<b style="color:var(--ink)">${f.slope.toFixed(2)}</b> <span class="muted2">(${slopeWord(f.slope)})</span>`
+    : `<span class="muted2">not enough spread to estimate</span>`;
+  const leanLine = sig && sig.lean !== null
+    ? `${sig.lean >= 0 ? "+" : ""}${sig.lean.toFixed(0)} pts vs the ${sig.baseRate.toFixed(0)}% base rate ${Math.abs(sig.lean) < 4 ? "(neutral)" : (sig.lean > 0 ? "(leans YES)" : "(leans NO)")}`
+    : "&mdash;";
+  // percentile rank vs the field
+  const pop = populationStats();
+  const sSum = personSummary(slug);
+  const skillP = pctRank(sSum.avg, pop.map(o => o.brier), false);
+  const calibP = pctRank(d.rel, pop.map(o => o.rel), false);
+  const boldP = pctRank(sSum.boldness, pop.map(o => o.boldness), true);
+  const ord = x => x === null ? "&mdash;" : x + (x % 10 === 1 && x !== 11 ? "st" : x % 10 === 2 && x !== 12 ? "nd" : x % 10 === 3 && x !== 13 ? "rd" : "th");
+  const fieldLine = pop.length >= 3
+    ? `<div class="field-line">vs the field (${pop.length} players): skill <b>${ord(skillP)}</b> &middot; calibration <b>${ord(calibP)}</b> &middot; boldness <b>${ord(boldP)}</b> percentile</div>`
+    : "";
+  return `<div class="pp-chart-h" style="margin-top:16px">brier decomposition <span class="muted2" style="text-transform:none;letter-spacing:0">&mdash; why the score is what it is</span></div>
+    ${svgDecompBars(d)}
+    <div class="chart-note" style="margin-top:2px">These three combine to approximate the Brier score: ${d.rel.toFixed(3)} &minus; ${d.res.toFixed(3)} + ${d.unc.toFixed(3)} = ${(d.rel - d.res + d.unc).toFixed(3)} (measured Brier ${d.brier.toFixed(3)}; the small gap is a binning artifact). Noisy on a single season's forecasts.</div>
+    ${fieldLine}
+    <div class="quality-stats">
+      <div><div class="q-l">overconfidence (calibration slope)</div><div class="q-v">${slopeLine}</div></div>
+      <div><div class="q-l">YES / NO lean</div><div class="q-v">${leanLine}</div></div>
+      <div><div class="q-l">range used</div><div class="q-v">${sig ? `${sig.min}&ndash;${sig.max}%, sd ${sig.sd.toFixed(0)}` : "&mdash;"}</div></div>
+      <div><div class="q-l">round-number habit</div><div class="q-v">${sig ? `${Math.round(sig.roundTens * 100)}% on round tens` : "&mdash;"}</div></div>
+    </div>`;
+}
+function svgSkillPlane() {
+  const q = allPlayerQuality();
+  if (q.length < 2) return `<div class="notice">Appears once a couple of players have resolved forecasts.</div>`;
+  const W = 560, H = 360, padL = 54, padR = 18, padT = 28, padB = 46;
+  const resMax = Math.max(...q.map(o => o.d.res), 0.1) * 1.1;
+  const relMax = Math.max(...q.map(o => o.d.rel), 0.1) * 1.1;
+  const x = v => padL + (v / resMax) * (W - padL - padR);            // resolution: right = better
+  const y = v => padT + (v / relMax) * (H - padT - padB);            // reliability: top = better (low rel)
+  // quadrant guides at medians
+  const medRes = q.map(o => o.d.res).sort((a, b) => a - b)[Math.floor(q.length / 2)];
+  const medRel = q.map(o => o.d.rel).sort((a, b) => a - b)[Math.floor(q.length / 2)];
+  let dots = "";
+  q.forEach(o => {
+    dots += `<g class="dot" onclick="jumpToPlayer('${o.slug}')" style="cursor:pointer">
+      <circle cx="${x(o.d.res).toFixed(1)}" cy="${y(o.d.rel).toFixed(1)}" r="6" fill="var(--accent)" fill-opacity="0.8"></circle>
+      <text x="${(x(o.d.res) + 9).toFixed(1)}" y="${(y(o.d.rel) + 3).toFixed(1)}" font-family="var(--mono)" font-size="9" fill="var(--muted)">${esc(initials(o.name))}</text></g>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart-svg" xmlns="http://www.w3.org/2000/svg">
+    <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H - padB}" stroke="var(--line)"></line>
+    <line x1="${padL}" y1="${H - padB}" x2="${W - padR}" y2="${H - padB}" stroke="var(--line)"></line>
+    <line x1="${x(medRes).toFixed(1)}" y1="${padT}" x2="${x(medRes).toFixed(1)}" y2="${H - padB}" stroke="var(--line)" stroke-dasharray="3 3" stroke-opacity="0.5"></line>
+    <line x1="${padL}" y1="${y(medRel).toFixed(1)}" x2="${W - padR}" y2="${y(medRel).toFixed(1)}" stroke="var(--line)" stroke-dasharray="3 3" stroke-opacity="0.5"></line>
+    <text x="${W - padR}" y="${H - padB + 16}" text-anchor="end" font-family="var(--mono)" font-size="9" fill="var(--faint)">resolution &rarr; (more discriminating)</text>
+    <text transform="translate(14 ${padT + 4}) rotate(0)" font-family="var(--mono)" font-size="9" fill="var(--faint)">&uarr; better</text>
+    <text transform="translate(16 ${(H - padB + padT) / 2}) rotate(-90)" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--faint)">reliability (calibration error)</text>
+    <text x="${W - padR}" y="${padT - 12}" text-anchor="end" font-family="var(--mono)" font-size="9" fill="#6ad19a">sharp &amp; calibrated</text>
+    ${dots}
+  </svg>`;
+}
+function svgSlopeDist() {
+  const q = allPlayerQuality().filter(o => o.slope !== null && isFinite(o.slope));
+  if (q.length < 3) return `<div class="notice">Appears once enough players have estimable calibration slopes.</div>`;
+  const slopes = q.map(o => Math.max(0, Math.min(3, o.slope))); // clip to [0,3] for display
+  const W = 520, H = 180, padL = 16, padB = 30, padT = 12, padR = 12;
+  const NB = 12, lo = 0, hi = 3;
+  const bins = new Array(NB).fill(0);
+  slopes.forEach(s => { let i = Math.floor((s - lo) / (hi - lo) * NB); if (i >= NB) i = NB - 1; bins[i]++; });
+  const max = Math.max(...bins, 1);
+  const bw = (W - padL - padR) / NB;
+  const yb = v => padT + (1 - v / max) * (H - padT - padB);
+  let bars = "";
+  bins.forEach((c, i) => {
+    const xx = padL + i * bw;
+    bars += `<rect x="${(xx + 2).toFixed(1)}" y="${yb(c).toFixed(1)}" width="${(bw - 4).toFixed(1)}" height="${(H - padB - yb(c)).toFixed(1)}" rx="2" fill="var(--accent)" fill-opacity="${c ? 0.65 : 0.12}"></rect>`;
+  });
+  const x1 = padL + ((1 - lo) / (hi - lo)) * (W - padL - padR); // slope = 1 marker
+  const med = slopes.slice().sort((a, b) => a - b)[Math.floor(slopes.length / 2)];
+  const ticks = [0, 1, 2, 3].map(t => `<text x="${(padL + (t / 3) * (W - padL - padR)).toFixed(1)}" y="${H - padB + 16}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--faint)">${t}</text>`).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart-svg" xmlns="http://www.w3.org/2000/svg">
+    ${bars}
+    <line x1="${padL}" y1="${H - padB}" x2="${W - padR}" y2="${H - padB}" stroke="var(--line)"></line>
+    <line x1="${x1.toFixed(1)}" y1="${padT}" x2="${x1.toFixed(1)}" y2="${H - padB}" stroke="var(--ink)" stroke-opacity="0.5" stroke-dasharray="3 3"></line>
+    <text x="${(x1 + 4).toFixed(1)}" y="${padT + 8}" font-family="var(--mono)" font-size="9" fill="var(--muted)">1.0 = perfect scaling</text>
+    ${ticks}
+    <text x="${(padL + (W - padR)) / 2}" y="${H - 4}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--muted)">calibration slope (&lt;1 overconfident, &gt;1 underconfident)</text>
+  </svg>`;
+}
+
+// ================= GROUP 2: LUCK vs SKILL (oracle only) =================
+// Seeded RNG so the bootstrap is reproducible between visits.
+function mulberry32(a) {
+  return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+}
+// Paired bootstrap over resolved markets: resample markets with replacement, recompute
+// every player's mean Brier on the SAME resample. Gives per-player CIs + pairwise P(A beats B).
+function bootstrapBrier(B) {
+  const players = playersInScope();
+  const markets = resolvedInScope();
+  const M = markets.length, slugs = players.map(p => p.slug);
+  if (M < 5 || slugs.length < 2) return null;
+  const perMarket = {}; // perMarket[slug][marketIndex] = brier or null
+  slugs.forEach(s => perMarket[s] = []);
+  markets.forEach(m => { const fs = forecastsFor(m.id); slugs.forEach(s => perMarket[s].push(s in fs ? brier(fs[s], m.outcome) : null)); });
+  const obs = {};
+  slugs.forEach(s => { let sum = 0, n = 0; perMarket[s].forEach(v => { if (v !== null) { sum += v; n++; } }); obs[s] = n ? sum / n : null; });
+  const samples = {}; slugs.forEach(s => samples[s] = []);
+  const beats = {}, pairN = {};
+  slugs.forEach(a => { beats[a] = {}; pairN[a] = {}; slugs.forEach(b => { if (a !== b) { beats[a][b] = 0; pairN[a][b] = 0; } }); });
+  const rnd = mulberry32(1234567 ^ (M * 131 + slugs.length));
+  for (let b = 0; b < B; b++) {
+    const idx = [];
+    for (let k = 0; k < M; k++) idx.push(Math.floor(rnd() * M));
+    const mean = {};
+    slugs.forEach(s => { let sum = 0, n = 0; for (const ii of idx) { const v = perMarket[s][ii]; if (v !== null) { sum += v; n++; } } mean[s] = n ? sum / n : null; if (n) samples[s].push(mean[s]); });
+    for (let i = 0; i < slugs.length; i++) for (let j = 0; j < slugs.length; j++) {
+      if (i === j) continue;
+      const a = slugs[i], bb = slugs[j], ma = mean[a], mb = mean[bb];
+      if (ma !== null && mb !== null) { pairN[a][bb]++; if (ma < mb) beats[a][bb]++; }
+    }
+  }
+  const ci = {};
+  slugs.forEach(s => {
+    const arr = samples[s].slice().sort((x, y) => x - y);
+    if (!arr.length) { ci[s] = null; return; }
+    const q = p => arr[Math.min(arr.length - 1, Math.max(0, Math.floor(p * arr.length)))];
+    ci[s] = { lo: q(0.05), hi: q(0.95), med: q(0.5) };
+  });
+  const pbeats = {};
+  slugs.forEach(a => { pbeats[a] = {}; slugs.forEach(b => { if (a !== b) pbeats[a][b] = pairN[a][b] ? beats[a][b] / pairN[a][b] : null; }); });
+  return { slugs, players, ci, pbeats, obs, B, M };
+}
+
+function svgBrierCI(boot) {
+  const rows = boot.slugs.map(s => ({ slug: s, name: (boot.players.find(p => p.slug === s) || {}).display_name || s, obs: boot.obs[s], ci: boot.ci[s] }))
+    .filter(r => r.obs !== null && r.ci).sort((a, b) => a.obs - b.obs);
+  if (!rows.length) return `<div class="notice">Appears once markets have resolved.</div>`;
+  const lo = Math.min(...rows.map(r => r.ci.lo)), hi = Math.max(...rows.map(r => r.ci.hi));
+  const pad = (hi - lo) * 0.08 || 0.02;
+  const x0 = Math.max(0, lo - pad), x1 = hi + pad;
+  const W = 560, rowH = 20, padT = 10, padB = 28, padL = 96, padR = 44;
+  const H = padT + rows.length * rowH + padB;
+  const X = v => padL + (v - x0) / (x1 - x0) * (W - padL - padR);
+  let body = "";
+  rows.forEach((r, i) => {
+    const y = padT + i * rowH + rowH / 2;
+    body += `<text x="${padL - 8}" y="${y + 3}" text-anchor="end" font-family="var(--sans)" font-size="11" fill="var(--ink)" onclick="jumpToPlayer('${r.slug}')" style="cursor:pointer">${esc(r.name)}</text>`;
+    body += `<line x1="${X(r.ci.lo).toFixed(1)}" y1="${y}" x2="${X(r.ci.hi).toFixed(1)}" y2="${y}" stroke="var(--line-strong)" stroke-width="2"></line>`;
+    body += `<line x1="${X(r.ci.lo).toFixed(1)}" y1="${y - 3}" x2="${X(r.ci.lo).toFixed(1)}" y2="${y + 3}" stroke="var(--line-strong)"></line>`;
+    body += `<line x1="${X(r.ci.hi).toFixed(1)}" y1="${y - 3}" x2="${X(r.ci.hi).toFixed(1)}" y2="${y + 3}" stroke="var(--line-strong)"></line>`;
+    body += `<circle cx="${X(r.obs).toFixed(1)}" cy="${y}" r="4" fill="var(--accent)"></circle>`;
+    body += `<text x="${(W - padR + 6)}" y="${y + 3}" font-family="var(--mono)" font-size="10" fill="var(--muted)">${r.obs.toFixed(2)}</text>`;
+  });
+  const ticks = [x0, (x0 + x1) / 2, x1].map(t => `<text x="${X(t).toFixed(1)}" y="${H - padB + 18}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--faint)">${t.toFixed(2)}</text>`).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart-svg" xmlns="http://www.w3.org/2000/svg">
+    ${body}
+    <line x1="${padL}" y1="${H - padB + 4}" x2="${W - padR}" y2="${H - padB + 4}" stroke="var(--line)"></line>
+    ${ticks}
+    <text x="${(padL + W - padR) / 2}" y="${H - 4}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--muted)">average brier (lower = better) &middot; bars are 90% bootstrap intervals</text>
+  </svg>`;
+}
+
+function htmlPairwise(boot) {
+  const order = boot.slugs.map(s => ({ slug: s, name: (boot.players.find(p => p.slug === s) || {}).display_name || s, obs: boot.obs[s] }))
+    .filter(r => r.obs !== null).sort((a, b) => a.obs - b.obs);
+  if (order.length < 2) return `<div class="notice">Appears once markets have resolved.</div>`;
+  const head = `<tr><th></th>` + order.map(o => `<th class="h2h-col">${esc(initials(o.name))}</th>`).join("") + `</tr>`;
+  const rows = order.map(a => {
+    const cells = order.map(b => {
+      if (a.slug === b.slug) return `<td class="h2h-self">&middot;</td>`;
+      const p = boot.pbeats[a.slug][b.slug];
+      if (p === null) return `<td class="h2h-na">&ndash;</td>`;
+      const col = p >= 0.5 ? `rgba(106,209,154,${((p - 0.5) * 2 * 0.5).toFixed(2)})` : `rgba(224,115,143,${((0.5 - p) * 2 * 0.5).toFixed(2)})`;
+      return `<td style="background:${col}">${Math.round(p * 100)}</td>`;
+    }).join("");
+    return `<tr><th class="h2h-row" onclick="jumpToPlayer('${a.slug}')">${esc(a.name)}</th>${cells}</tr>`;
+  }).join("");
+  return `<div class="h2h-wrap"><table class="h2h">${head}${rows}</table></div>`;
+}
+
+// ================= GROUP 3: COLLECTIVE INTELLIGENCE (oracle only) =================
+// resolved markets as a matrix of forecasts (fractions) keyed by slug
+function resolvedMatrix() {
+  const markets = resolvedInScope();
+  const players = playersInScope();
+  const slugs = players.map(p => p.slug);
+  const rows = markets.map(m => {
+    const raw = forecastsFor(m.id), fs = {};
+    slugs.forEach(s => { if (s in raw) fs[s] = raw[s] / 100; });
+    return { m, y: m.outcome === "YES" ? 1 : 0, fs };
+  });
+  return { rows, slugs, players };
+}
+// crowd vs individuals + diversity prediction theorem (crowdBrier = avgIndivBrier - diversity)
+function crowdComparison() {
+  const { rows, slugs, players } = resolvedMatrix();
+  if (!rows.length || slugs.length < 2) return null;
+  let crowdSE = 0, avgIndSE = 0, divSum = 0, M = 0;
+  rows.forEach(r => {
+    const vals = slugs.map(s => r.fs[s]).filter(v => v !== undefined);
+    if (vals.length < 1) return;
+    M++;
+    const c = vals.reduce((a, b) => a + b, 0) / vals.length;
+    crowdSE += (c - r.y) * (c - r.y);
+    avgIndSE += vals.reduce((a, v) => a + (v - r.y) * (v - r.y), 0) / vals.length;
+    divSum += vals.reduce((a, v) => a + (v - c) * (v - c), 0) / vals.length;
+  });
+  if (!M) return null;
+  const crowdBrier = crowdSE / M, avgIndivBrier = avgIndSE / M, diversity = divSum / M;
+  const indiv = slugs.map(s => {
+    let se = 0, n = 0; rows.forEach(r => { if (r.fs[s] !== undefined) { se += (r.fs[s] - r.y) * (r.fs[s] - r.y); n++; } });
+    return { slug: s, name: (players.find(p => p.slug === s) || {}).display_name || s, avg: n ? se / n : null };
+  }).filter(o => o.avg !== null).sort((a, b) => a.avg - b.avg);
+  const beatCrowd = indiv.filter(o => o.avg < crowdBrier).length;
+  return { crowdBrier, avgIndivBrier, diversity, indiv, beatCrowd, M, nPlayers: indiv.length };
+}
+// leave-one-out marginal contribution to crowd accuracy
+function leaveOneOut() {
+  const { rows, slugs, players } = resolvedMatrix();
+  if (!rows.length || slugs.length < 3) return null;
+  const crowdBrierExcept = skip => {
+    let se = 0, M = 0;
+    rows.forEach(r => {
+      const vals = slugs.filter(s => s !== skip).map(s => r.fs[s]).filter(v => v !== undefined);
+      if (!vals.length) return;
+      const c = vals.reduce((a, b) => a + b, 0) / vals.length;
+      se += (c - r.y) * (c - r.y); M++;
+    });
+    return M ? se / M : null;
+  };
+  const base = crowdBrierExcept(null);
+  const res = slugs.map(s => {
+    const without = crowdBrierExcept(s);
+    return { slug: s, name: (players.find(p => p.slug === s) || {}).display_name || s, help: (without !== null && base !== null) ? without - base : null };
+  }).filter(o => o.help !== null).sort((a, b) => b.help - a.help);
+  return { base, res };
+}
+// crowd-size saturation: mean crowd Brier vs number of forecasters sampled
+function saturationCurve() {
+  const { rows, slugs } = resolvedMatrix();
+  const N = slugs.length;
+  if (!rows.length || N < 4) return null;
+  const S = 200, rnd = mulberry32(987654 ^ (N * 7 + rows.length));
+  const out = [];
+  for (let k = 1; k <= N; k++) {
+    const samples = [];
+    for (let s = 0; s < S; s++) {
+      const pool = slugs.slice();
+      for (let i = 0; i < k; i++) { const j = i + Math.floor(rnd() * (pool.length - i)); const t = pool[i]; pool[i] = pool[j]; pool[j] = t; }
+      const pick = pool.slice(0, k);
+      let se = 0, M = 0;
+      rows.forEach(r => { const vals = pick.map(x => r.fs[x]).filter(v => v !== undefined); if (!vals.length) return; const c = vals.reduce((a, b) => a + b, 0) / vals.length; se += (c - r.y) * (c - r.y); M++; });
+      if (M) samples.push(se / M);
+    }
+    samples.sort((a, b) => a - b);
+    const mean = samples.reduce((a, b) => a + b, 0) / samples.length;
+    const q = p => samples[Math.min(samples.length - 1, Math.max(0, Math.floor(p * samples.length)))];
+    out.push({ k, mean, lo: q(0.1), hi: q(0.9) });
+  }
+  return out;
+}
+
+function svgDiversityBar(cmp) {
+  // a bar of length avgIndivBrier split into crowd error (kept) + diversity (cancelled)
+  const W = 520, H = 96, padL = 12, padR = 12, top = 26, bh = 30;
+  const total = cmp.avgIndivBrier || 1e-9;
+  const wTot = W - padL - padR;
+  const wc = Math.max(0, (cmp.crowdBrier / total) * wTot);
+  const wd = Math.max(0, (cmp.diversity / total) * wTot);
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart-svg" xmlns="http://www.w3.org/2000/svg">
+    <text x="${padL}" y="16" font-family="var(--mono)" font-size="10" fill="var(--muted)">average individual error ${cmp.avgIndivBrier.toFixed(3)} = crowd error + diversity</text>
+    <rect x="${padL}" y="${top}" width="${wc.toFixed(1)}" height="${bh}" rx="3" fill="var(--accent)" fill-opacity="0.85"></rect>
+    <rect x="${(padL + wc).toFixed(1)}" y="${top}" width="${wd.toFixed(1)}" height="${bh}" rx="3" fill="#6ad19a" fill-opacity="0.55"></rect>
+    <text x="${(padL + wc / 2).toFixed(1)}" y="${top + bh + 16}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--accent)">crowd ${cmp.crowdBrier.toFixed(3)}</text>
+    <text x="${(padL + wc + wd / 2).toFixed(1)}" y="${top + bh + 16}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="#6ad19a">diversity ${cmp.diversity.toFixed(3)}</text>
+  </svg>`;
+}
+function svgSaturation(curve) {
+  if (!curve || curve.length < 2) return `<div class="notice">Needs more forecasters.</div>`;
+  const W = 560, H = 240, padL = 46, padB = 36, padT = 14, padR = 14;
+  const N = curve.length;
+  const lo = Math.min(...curve.map(p => p.lo)), hi = Math.max(...curve.map(p => p.hi));
+  const y0 = Math.max(0, lo - (hi - lo) * 0.1), y1 = hi + (hi - lo) * 0.1;
+  const X = k => padL + (k - 1) / (N - 1) * (W - padL - padR);
+  const Y = v => padT + (1 - (v - y0) / (y1 - y0)) * (H - padT - padB);
+  let band = "M";
+  curve.forEach((p, i) => { band += (i ? "L" : "") + X(p.k).toFixed(1) + " " + Y(p.hi).toFixed(1) + " "; });
+  for (let i = curve.length - 1; i >= 0; i--) band += "L" + X(curve[i].k).toFixed(1) + " " + Y(curve[i].lo).toFixed(1) + " ";
+  band += "Z";
+  let line = "";
+  curve.forEach((p, i) => { line += (i ? "L" : "M") + X(p.k).toFixed(1) + " " + Y(p.mean).toFixed(1) + " "; });
+  const yt = [y0, (y0 + y1) / 2, y1].map(v => `<text x="${padL - 8}" y="${(Y(v) + 3).toFixed(1)}" text-anchor="end" font-family="var(--mono)" font-size="9" fill="var(--faint)">${v.toFixed(2)}</text><line x1="${padL}" y1="${Y(v).toFixed(1)}" x2="${W - padR}" y2="${Y(v).toFixed(1)}" stroke="var(--line)" stroke-opacity="0.4"></line>`).join("");
+  const xt = [1, Math.round(N / 2), N].map(k => `<text x="${X(k).toFixed(1)}" y="${H - padB + 16}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--faint)">${k}</text>`).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart-svg" xmlns="http://www.w3.org/2000/svg">
+    ${yt}
+    <path d="${band}" fill="var(--accent)" fill-opacity="0.12"></path>
+    <path d="${line}" fill="none" stroke="var(--accent)" stroke-width="2"></path>
+    <line x1="${padL}" y1="${H - padB}" x2="${W - padR}" y2="${H - padB}" stroke="var(--line)"></line>
+    ${xt}
+    <text x="${(padL + W - padR) / 2}" y="${H - 4}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--muted)">forecasters averaged (random subsets) &middot; shaded = 10&ndash;90%</text>
+    <text transform="translate(13 ${(H - padB + padT) / 2}) rotate(-90)" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--muted)">crowd brier</text>
+  </svg>`;
+}
+
+// ---------- consensus-settles overlay (all markets, lines only) ----------
+function svgStabilizationAll() {
+  const list = stabMarketsList();
+  if (!list.length) return `<div class="notice">Consensus movement appears once markets have several forecasts placed at different times.</div>`;
+  const W = 560, H = 260, padL = 34, padB = 30, padT = 12, padR = 52;
+  const X = f => padL + f * (W - padL - padR);
+  const Y = v => padT + (1 - v / 100) * (H - padT - padB);
+  const yt = [0, 50, 100].map(t => `<text x="${padL - 6}" y="${(Y(t) + 3).toFixed(1)}" text-anchor="end" font-family="var(--mono)" font-size="8" fill="var(--faint)">${t}</text><line x1="${padL}" y1="${Y(t).toFixed(1)}" x2="${W - padR}" y2="${Y(t).toFixed(1)}" stroke="var(--line)" stroke-opacity="0.4"></line>`).join("");
+  let lines = "";
+  list.forEach((m, mi) => {
+    const pts = marketStabilization(m);
+    if (pts.length < 2) return;
+    const col = CHART_COLORS[mi % CHART_COLORS.length];
+    const n = pts.length;
+    let d = "";
+    pts.forEach((pt, i) => { d += (i ? "L" : "M") + X(i / (n - 1)).toFixed(1) + " " + Y(pt.mean).toFixed(1) + " "; });
+    lines += `<path d="${d}" fill="none" stroke="${col}" stroke-width="1.6" stroke-opacity="0.85"></path>`;
+    lines += `<text x="${(W - padR + 4)}" y="${(Y(pts[n - 1].mean) + 3).toFixed(1)}" font-family="var(--mono)" font-size="8" fill="${col}">${esc(symbol(m).replace("MTO\u00b7", ""))}</text>`;
+  });
+  return `<div class="dp-block"><svg viewBox="0 0 ${W} ${H}" class="dp-svg" xmlns="http://www.w3.org/2000/svg">
+    ${yt}${lines}
+    <text x="${padL}" y="${H - padB + 18}" font-family="var(--mono)" font-size="9" fill="var(--faint)">first forecast</text>
+    <text x="${W - padR}" y="${H - padB + 18}" text-anchor="end" font-family="var(--mono)" font-size="9" fill="var(--faint)">last</text>
+  </svg></div>`;
+}
+
+// ---------- every-market / every-forecast selector (All = stacked, or one market) ----------
+function dotMarketsList() {
+  return analyticsMarkets().slice().sort((a, b) => {
+    const sa = effectiveStatus(a) === "resolved" ? 2 : (effectiveStatus(a) === "closed" ? 1 : 0);
+    const sb = effectiveStatus(b) === "resolved" ? 2 : (effectiveStatus(b) === "closed" ? 1 : 0);
+    return sa - sb;
+  });
+}
+function selectedDotMarket() {
+  if (analyticsDotMarket === "all") return "all";
+  const ids = dotMarketsList().map(m => m.id);
+  return ids.indexOf(analyticsDotMarket) >= 0 ? analyticsDotMarket : "all";
+}
+function dotButtonsHtml() {
+  const list = dotMarketsList();
+  if (!list.length) return "";
+  const sel = selectedDotMarket();
+  let b = `<button class="player-chip${sel === "all" ? " on" : ""}" data-dot="all" onclick="selectDotMarket('all')">All</button>`;
+  b += list.map(m => `<button class="player-chip${m.id === sel ? " on" : ""}" data-dot="${m.id}" onclick="selectDotMarket('${m.id}')">${esc(symbol(m).replace("MTO\u00b7", ""))}</button>`).join("");
+  return b;
+}
+function dotPanelHtml() {
+  const sel = selectedDotMarket();
+  const list = dotMarketsList();
+  if (!list.length) return `<div class="notice">No markets in this scope.</div>`;
+  if (sel === "all") return list.map(svgDotPlot).join("");
+  return svgDotPlot(marketById(sel));
+}
+function selectDotMarket(id) {
+  analyticsDotMarket = id;
+  const panel = document.getElementById("dot-panel");
+  if (panel) panel.innerHTML = dotPanelHtml();
+  const btns = document.querySelectorAll("[data-dot]");
+  if (btns && btns.forEach) btns.forEach(b => b.classList.toggle("on", b.dataset && b.dataset.dot === id));
+}
+
+// ================= GROUP 4: POPULATION & TYPOLOGY (oracle only) =================
+function populationStats() {
+  return playersInScope().map(p => {
+    const s = personSummary(p.slug);
+    const d = brierDecomp(playerPY(p.slug));
+    return { slug: p.slug, name: p.display_name, brier: s.avg, boldness: s.boldness, rel: d ? d.rel : null, n: s.n };
+  });
+}
+// percentile = % of the field this value beats (higherBetter flips direction)
+function pctRank(value, values, higherBetter) {
+  const n = values.length;
+  if (value === null || n <= 1) return null;
+  let beat = 0;
+  values.forEach(v => { if (v === null || v === value) return; if (higherBetter ? value > v : value < v) beat++; });
+  return Math.round(100 * beat / (n - 1));
+}
+function svgHist(values, opts) {
+  const vals = values.filter(v => v !== null && isFinite(v));
+  if (vals.length < 2) return `<div class="notice">Not enough data.</div>`;
+  const lo = opts.min !== undefined ? opts.min : Math.min(...vals);
+  const hi = opts.max !== undefined ? opts.max : Math.max(...vals);
+  const W = 260, H = 130, padL = 10, padR = 10, padT = 10, padB = 28, NB = 10;
+  const bins = new Array(NB).fill(0);
+  vals.forEach(v => { let i = Math.floor((v - lo) / (hi - lo || 1) * NB); if (i >= NB) i = NB - 1; if (i < 0) i = 0; bins[i]++; });
+  const max = Math.max(...bins, 1), bw = (W - padL - padR) / NB;
+  const Y = c => padT + (1 - c / max) * (H - padT - padB);
+  let bars = "";
+  bins.forEach((c, i) => { const x = padL + i * bw; bars += `<rect x="${(x + 1).toFixed(1)}" y="${Y(c).toFixed(1)}" width="${(bw - 2).toFixed(1)}" height="${(H - padB - Y(c)).toFixed(1)}" rx="1.5" fill="var(--accent)" fill-opacity="${c ? 0.6 : 0.12}"></rect>`; });
+  const med = vals.slice().sort((a, b) => a - b)[Math.floor(vals.length / 2)];
+  const mx = padL + (med - lo) / (hi - lo || 1) * (W - padL - padR);
+  const ticks = [lo, hi].map((t, i) => `<text x="${i === 0 ? padL : W - padR}" y="${H - padB + 14}" text-anchor="${i === 0 ? "start" : "end"}" font-family="var(--mono)" font-size="8" fill="var(--faint)">${opts.fmt ? opts.fmt(t) : t.toFixed(2)}</text>`).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart-svg" xmlns="http://www.w3.org/2000/svg">
+    ${bars}
+    <line x1="${padL}" y1="${H - padB}" x2="${W - padR}" y2="${H - padB}" stroke="var(--line)"></line>
+    <line x1="${mx.toFixed(1)}" y1="${padT}" x2="${mx.toFixed(1)}" y2="${H - padB}" stroke="var(--ink)" stroke-opacity="0.5" stroke-dasharray="3 3"></line>
+    ${ticks}
+    <text x="${W / 2}" y="${H - 4}" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="var(--muted)">${opts.label} &middot; median ${opts.fmt ? opts.fmt(med) : med.toFixed(2)}</text>
+  </svg>`;
+}
+function svgBoldAccurate() {
+  const arr = populationStats().filter(o => o.brier !== null && o.boldness !== null);
+  if (arr.length < 2) return `<div class="notice">Appears once players have resolved forecasts.</div>`;
+  const W = 560, H = 320, padL = 50, padR = 16, padT = 16, padB = 44;
+  const bMax = Math.max(...arr.map(o => o.boldness), 1) * 1.1;
+  const yMax = Math.max(...arr.map(o => o.brier), 0.1) * 1.1;
+  const X = v => padL + (v / bMax) * (W - padL - padR);
+  const Y = v => padT + (v / yMax) * (H - padT - padB);             // 0 (best) at top
+  const medB = arr.map(o => o.boldness).sort((a, b) => a - b)[Math.floor(arr.length / 2)];
+  const medY = arr.map(o => o.brier).sort((a, b) => a - b)[Math.floor(arr.length / 2)];
+  let dots = "";
+  arr.forEach(o => {
+    dots += `<g class="dot" onclick="jumpToPlayer('${o.slug}')" style="cursor:pointer"><circle cx="${X(o.boldness).toFixed(1)}" cy="${Y(o.brier).toFixed(1)}" r="6" fill="var(--accent)" fill-opacity="0.8"></circle><text x="${(X(o.boldness) + 9).toFixed(1)}" y="${(Y(o.brier) + 3).toFixed(1)}" font-family="var(--mono)" font-size="9" fill="var(--muted)">${esc(initials(o.name))}</text></g>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart-svg" xmlns="http://www.w3.org/2000/svg">
+    <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H - padB}" stroke="var(--line)"></line>
+    <line x1="${padL}" y1="${H - padB}" x2="${W - padR}" y2="${H - padB}" stroke="var(--line)"></line>
+    <line x1="${X(medB).toFixed(1)}" y1="${padT}" x2="${X(medB).toFixed(1)}" y2="${H - padB}" stroke="var(--line)" stroke-dasharray="3 3" stroke-opacity="0.5"></line>
+    <line x1="${padL}" y1="${Y(medY).toFixed(1)}" x2="${W - padR}" y2="${Y(medY).toFixed(1)}" stroke="var(--line)" stroke-dasharray="3 3" stroke-opacity="0.5"></line>
+    <text x="${W - padR}" y="${H - padB + 16}" text-anchor="end" font-family="var(--mono)" font-size="9" fill="var(--faint)">bolder &rarr; (further from 50%)</text>
+    <text transform="translate(15 ${(H - padB + padT) / 2}) rotate(-90)" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--muted)">brier (lower / higher = better)</text>
+    <text x="${X(medB) + 6}" y="${padT + 4}" font-family="var(--mono)" font-size="9" fill="#6ad19a">bold &amp; accurate</text>
+    ${dots}
+  </svg>`;
+}
+// pairwise Pearson correlation of forecasts across shared markets
+function forecastCorrMatrix() {
+  const players = playersInScope();
+  const markets = analyticsMarkets();
+  const slugs = players.map(p => p.slug);
+  const vec = {}; slugs.forEach(s => vec[s] = {});
+  markets.forEach(m => { const fs = forecastsFor(m.id); slugs.forEach(s => { if (s in fs) vec[s][m.id] = fs[s]; }); });
+  const corr = (a, b) => {
+    const xs = [], ys = [];
+    markets.forEach(m => { const va = vec[a][m.id], vb = vec[b][m.id]; if (va !== undefined && vb !== undefined) { xs.push(va); ys.push(vb); } });
+    const n = xs.length; if (n < 3) return null;
+    const mx = xs.reduce((p, q) => p + q, 0) / n, my = ys.reduce((p, q) => p + q, 0) / n;
+    let sxy = 0, sxx = 0, syy = 0;
+    for (let i = 0; i < n; i++) { const dx = xs[i] - mx, dy = ys[i] - my; sxy += dx * dy; sxx += dx * dx; syy += dy * dy; }
+    if (sxx <= 0 || syy <= 0) return null;
+    return sxy / Math.sqrt(sxx * syy);
+  };
+  const M = slugs.map(a => slugs.map(b => a === b ? 1 : corr(a, b)));
+  return { slugs, players, M };
+}
+// spectral seriation: order players by the 2nd eigenvector of the similarity matrix
+function seriateOrder(M) {
+  const n = M.length;
+  const S = M.map(row => row.map(v => v === null ? 0 : v));
+  for (let i = 0; i < n; i++) S[i][i] = 1;
+  const matVec = (A, x) => A.map(row => row.reduce((s, a, j) => s + a * x[j], 0));
+  const powerIter = A => {
+    let x = A.map((_, i) => Math.sin(i + 1));
+    const nrm = v => { const m = Math.sqrt(v.reduce((s, q) => s + q * q, 0)) || 1; return v.map(q => q / m); };
+    x = nrm(x);
+    for (let it = 0; it < 120; it++) x = nrm(matVec(A, x));
+    const Ax = matVec(A, x), val = x.reduce((s, v, i) => s + v * Ax[i], 0);
+    return { vec: x, val };
+  };
+  const e1 = powerIter(S);
+  const S2 = S.map((row, i) => row.map((v, j) => v - e1.val * e1.vec[i] * e1.vec[j]));
+  const e2 = powerIter(S2);
+  return S.map((_, i) => i).sort((a, b) => e2.vec[a] - e2.vec[b]);
+}
+// average correlation of player i to a group of indices
+function meanCorrTo(i, group, M) { let s = 0, c = 0; group.forEach(j => { if (j === i) return; const v = M[i][j]; if (v !== null) { s += v; c++; } }); return c ? s / c : 0; }
+// agglomerative average-linkage clustering of the correlation matrix, cut at the largest dendrogram gap
+function campClusters() {
+  const { slugs, players, M } = forecastCorrMatrix();
+  const n = slugs.length;
+  if (n < 3) return { ok: false, msg: "Appears once at least three players have forecast." };
+  if (!M.some((row, i) => row.some((v, j) => i !== j && v !== null))) return { ok: false, msg: "Appears once players share at least three forecast markets." };
+  const dist = (i, j) => { const v = M[i][j]; return v === null ? 1 : (1 - v) / 2; };  // corr [-1,1] -> dist [0,1]
+  let groups = slugs.map((_, i) => [i]);
+  const mergeDist = []; const snapshots = {}; snapshots[n] = groups.map(g => g.slice());
+  const clustDist = (A, B) => { let s = 0, c = 0; for (const a of A) for (const b of B) { s += dist(a, b); c++; } return s / c; };
+  while (groups.length > 1) {
+    let bi = 0, bj = 1, bd = Infinity;
+    for (let i = 0; i < groups.length; i++) for (let j = i + 1; j < groups.length; j++) { const d = clustDist(groups[i], groups[j]); if (d < bd) { bd = d; bi = i; bj = j; } }
+    mergeDist.push(bd);
+    const merged = groups[bi].concat(groups[bj]);
+    groups = groups.filter((_, idx) => idx !== bi && idx !== bj); groups.push(merged);
+    snapshots[groups.length] = groups.map(g => g.slice());
+  }
+  const maxK = Math.min(5, n - 1);
+  let bestK = 2, bestGap = -Infinity;
+  for (let K = 2; K <= maxK; K++) {
+    const tReduce = n - K; if (tReduce < 0 || tReduce >= mergeDist.length) continue;
+    const gap = mergeDist[tReduce] - (n - K - 1 >= 0 ? mergeDist[n - K - 1] : 0);
+    if (gap > bestGap) { bestGap = gap; bestK = K; }
+  }
+  const range = (mergeDist[mergeDist.length - 1] - mergeDist[0]) || 1;
+  const weak = bestGap / range < 0.15;
+  let clusterArrays = (snapshots[bestK] || snapshots[2]).map(g => g.slice().sort((a, b) => meanCorrTo(b, g, M) - meanCorrTo(a, g, M)));
+  clusterArrays.sort((a, b) => b.length - a.length);
+  const order = [], boundaries = [], clusterOf = {};
+  clusterArrays.forEach((g, ci) => { if (order.length) boundaries.push(order.length); g.forEach(idx => { order.push(idx); clusterOf[slugs[idx]] = ci; }); });
+  return { ok: true, slugs, players, M, order, boundaries, clusterOf, clusters: clusterArrays.map(g => g.map(idx => slugs[idx])), weak, k: bestK };
+}
+function svgCorrHeatmap(cl) {
+  if (!cl) cl = campClusters();
+  if (!cl || !cl.ok) return `<div class="notice">${cl && cl.msg ? cl.msg : "Appears once at least three players have forecast."}</div>`;
+  const { slugs, players, M, order, boundaries, clusterOf } = cl;
+  const n = slugs.length;
+  const nameFull = i => (players.find(p => p.slug === slugs[i]) || {}).display_name || slugs[i];
+  const cc = ci => CHART_COLORS[ci % CHART_COLORS.length];
+  const cell = Math.max(9, Math.min(20, Math.floor(440 / n)));
+  const padL = 40, padT = 54;   // extra top room so rotated labels clear the grid
+  const W = padL + n * cell + 6, H = padT + n * cell + 8;
+  const col = v => v === null ? "var(--line)" : (v >= 0 ? `rgba(154,140,245,${Math.max(0.05, v).toFixed(2)})` : `rgba(224,115,143,${Math.max(0.05, -v).toFixed(2)})`);
+  const fs = Math.min(8, cell - 1);
+  let cells = "", labels = "";
+  order.forEach((oi, r) => {
+    const lc = cc(clusterOf[slugs[oi]]);
+    const cy = padT + r * cell + cell / 2, cx = padL + r * cell + cell / 2;
+    labels += `<text x="${(padL - 4)}" y="${(cy + 3).toFixed(1)}" text-anchor="end" font-family="var(--mono)" font-size="${fs}" fill="${lc}">${esc(initials(nameFull(oi)))}</text>`;
+    labels += `<text x="${cx.toFixed(1)}" y="${(padT - 6)}" text-anchor="start" font-family="var(--mono)" font-size="${fs}" fill="${lc}" transform="rotate(-90 ${cx.toFixed(1)} ${(padT - 6)})">${esc(initials(nameFull(oi)))}</text>`;
+    order.forEach((oj, c) => {
+      const v = M[oi][oj], x = padL + c * cell, y = padT + r * cell;
+      cells += `<rect x="${x}" y="${y}" width="${cell - 0.5}" height="${cell - 0.5}" fill="${col(v)}"><title>${esc(nameFull(oi))} \u2194 ${esc(nameFull(oj))}: r = ${v === null ? "n/a" : v.toFixed(2)}</title></rect>`;
+    });
+  });
+  let seps = "";
+  boundaries.forEach(b => {
+    const p = (padT + b * cell).toFixed(1), px = (padL + b * cell).toFixed(1), end = (padT + n * cell).toFixed(1), endX = (padL + n * cell).toFixed(1);
+    seps += `<line x1="${padL}" y1="${p}" x2="${endX}" y2="${p}" stroke="var(--ink)" stroke-opacity="0.55" stroke-width="1.5"></line>`;
+    seps += `<line x1="${px}" y1="${padT}" x2="${px}" y2="${end}" stroke="var(--ink)" stroke-opacity="0.55" stroke-width="1.5"></line>`;
+  });
+  return `<div class="h2h-wrap"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">${cells}${seps}${labels}</svg></div>`;
+}
+function campLegend(cl) {
+  if (!cl || !cl.ok) return "";
+  const cc = ci => CHART_COLORS[ci % CHART_COLORS.length];
+  const named = cl.clusters.map((g, ci) => g.length >= 2 ? `<span class="camp-tag"><span class="camp-dot" style="background:${cc(ci)}"></span>${g.map(s => esc(displayName(s))).join(", ")}</span>` : null).filter(Boolean);
+  const loners = cl.clusters.filter(g => g.length < 2).reduce((a, g) => a.concat(g), []);
+  let html = `<div class="camp-legend">`;
+  html += named.join("");
+  if (loners.length) html += `<span class="camp-tag"><span class="camp-dot" style="background:var(--faint)"></span><span class="muted2">on their own: ${loners.map(s => esc(displayName(s))).join(", ")}</span></span>`;
+  html += `</div>`;
+  html += cl.weak
+    ? `<div class="chart-note">Separation is weak: these groupings are loose and the room is fairly uniform. Read them as tendencies, not hard camps.</div>`
+    : `<div class="chart-note">${cl.k} groupings, found by clustering the correlations. People inside a group forecast more like each other than like the rest. Cell colors run purple (move together) to red (move opposite); lines mark the group boundaries.</div>`;
+  return html;
+}
+function svgPersonCorr(slug) {
+  const { slugs, players, M } = forecastCorrMatrix();
+  const i = slugs.indexOf(slug);
+  if (i < 0) return `<div class="notice">No data for this player.</div>`;
+  const rows = slugs.map((s, j) => j === i ? null : { slug: s, name: (players.find(p => p.slug === s) || {}).display_name || s, r: M[i][j] }).filter(o => o && o.r !== null).sort((a, b) => b.r - a.r);
+  if (!rows.length) return `<div class="pp-head-row"><h3 class="pp-name" style="font-size:17px">${esc(displayName(slug))}</h3></div><div class="notice">${esc(displayName(slug))} hasn't shared at least three markets with anyone yet.</div>`;
+  const W = 560, rowH = 21, padT = 8, padB = 8, padL = 124;
+  const H = padT + rows.length * rowH + padB;
+  const half = (W - padL - 44) / 2, cx = padL + half;
+  const X = r => cx + r * half;
+  let bars = "";
+  rows.forEach((o, k) => {
+    const cyy = padT + k * rowH + rowH / 2, x2 = X(o.r), c = o.r >= 0 ? "var(--accent)" : "#e0738f";
+    bars += `<text x="${padL - 8}" y="${(cyy + 3).toFixed(1)}" text-anchor="end" font-family="var(--sans)" font-size="11" fill="var(--ink)" onclick="selectCampPerson('${o.slug}')" style="cursor:pointer">${esc(o.name)}</text>`;
+    bars += `<rect x="${Math.min(cx, x2).toFixed(1)}" y="${(cyy - 6).toFixed(1)}" width="${Math.abs(x2 - cx).toFixed(1)}" height="12" rx="2" fill="${c}" fill-opacity="0.78"></rect>`;
+    bars += `<text x="${(o.r >= 0 ? x2 + 4 : x2 - 4).toFixed(1)}" y="${(cyy + 3).toFixed(1)}" text-anchor="${o.r >= 0 ? "start" : "end"}" font-family="var(--mono)" font-size="9" fill="var(--muted)">${o.r.toFixed(2)}</text>`;
+  });
+  return `<div class="pp-head-row"><h3 class="pp-name" style="font-size:17px">${esc(displayName(slug))} &middot; correlation with everyone</h3></div>
+    <svg viewBox="0 0 ${W} ${H}" class="chart-svg" xmlns="http://www.w3.org/2000/svg"><line x1="${cx.toFixed(1)}" y1="${padT}" x2="${cx.toFixed(1)}" y2="${(H - padB).toFixed(1)}" stroke="var(--line)"></line>${bars}</svg>
+    <div class="chart-note">How ${esc(displayName(slug))}'s forecasts track each other player's across shared markets. Right / purple = move together, left / red = move opposite. Click a name to switch to that person.</div>`;
+}
+function corrPairs() {
+  const { slugs, M } = forecastCorrMatrix();
+  const pairs = [];
+  for (let i = 0; i < slugs.length; i++) for (let j = i + 1; j < slugs.length; j++) { const v = M[i][j]; if (v !== null) pairs.push({ a: slugs[i], b: slugs[j], r: v }); }
+  pairs.sort((x, y) => y.r - x.r);
+  return { closest: pairs.slice(0, 6), furthest: pairs.slice(-6).reverse() };
+}
+// ---------- camps selector (heatmap+clusters, or one person's correlations) ----------
+function selectedCampPerson() {
+  if (analyticsCampPerson === "all") return "all";
+  const ids = playersInScope().map(p => p.slug);
+  return ids.indexOf(analyticsCampPerson) >= 0 ? analyticsCampPerson : "all";
+}
+function campButtonsHtml() {
+  const players = playersInScope(); if (players.length < 3) return "";
+  const sel = selectedCampPerson();
+  let b = `<button class="player-chip${sel === "all" ? " on" : ""}" data-camp="all" onclick="selectCampPerson('all')">All</button>`;
+  b += players.map(p => `<button class="player-chip${p.slug === sel ? " on" : ""}" data-camp="${p.slug}" onclick="selectCampPerson('${p.slug}')">${esc(p.display_name)}</button>`).join("");
+  return b;
+}
+function campPanelHtml() {
+  const sel = selectedCampPerson();
+  if (sel === "all") { const cl = campClusters(); return svgCorrHeatmap(cl) + campLegend(cl); }
+  return svgPersonCorr(sel);
+}
+function selectCampPerson(id) {
+  analyticsCampPerson = id;
+  const panel = document.getElementById("camp-panel");
+  if (panel) panel.innerHTML = campPanelHtml();
+  const btns = document.querySelectorAll("[data-camp]");
+  if (btns && btns.forEach) btns.forEach(b => b.classList.toggle("on", b.dataset && b.dataset.camp === id));
+}
+
+// ================= GROUP 5: DYNAMICS OVER TIME (oracle only) =================
+// forecasts for a market in arrival order, each with the consensus visible just before it
+function marketArrivals(m) {
+  const seq = forecastsTimedFor(m.id); // sorted by time, one per person, valid timestamps only
+  let sum = 0; const out = [];
+  seq.forEach((f, i) => { const prior = i > 0 ? sum / i : null; out.push({ name: f.name, p: f.p, t: f.t, rank: i, n: seq.length, prior }); sum += f.p; });
+  return { seq: out, finalC: seq.length ? sum / seq.length : null, n: seq.length };
+}
+// per-person consensus proximity: avg distance from the consensus visible when they locked
+function herdingScores() {
+  const players = playersInScope(); const slugs = new Set(players.map(p => p.slug));
+  const acc = {};
+  analyticsMarkets().forEach(m => {
+    marketArrivals(m).seq.forEach(f => {
+      if (!slugs.has(f.name) || f.prior === null) return;
+      (acc[f.name] = acc[f.name] || { sum: 0, n: 0 }); acc[f.name].sum += Math.abs(f.p - f.prior); acc[f.name].n++;
+    });
+  });
+  return players.map(p => { const a = acc[p.slug]; return a && a.n >= 3 ? { slug: p.slug, name: p.display_name, prox: a.sum / a.n, n: a.n } : null; }).filter(Boolean).sort((a, b) => a.prox - b.prox);
+}
+// order effect: distance from final consensus vs arrival position (binned)
+function orderEffect() {
+  const pts = [];
+  analyticsMarkets().forEach(m => { const { seq, finalC, n } = marketArrivals(m); if (n < 4 || finalC === null) return; seq.forEach(f => pts.push({ x: f.rank / (n - 1), d: Math.abs(f.p - finalC) })); });
+  return pts;
+}
+function earlyLateBrier() {
+  let eSum = 0, eN = 0, lSum = 0, lN = 0;
+  resolvedInScope().forEach(m => { const { seq, n } = marketArrivals(m); if (n < 4) return; seq.forEach(f => { const b = brier(f.p, m.outcome); if (f.rank < n / 2) { eSum += b; eN++; } else { lSum += b; lN++; } }); });
+  return { early: eN ? eSum / eN : null, late: lN ? lSum / lN : null, eN, lN };
+}
+// per-market consensus volatility (total movement) and 50%-crossing flips
+function consensusDynamics() {
+  return analyticsMarkets().map(m => {
+    const pts = marketStabilization(m); if (pts.length < 3) return null;
+    let move = 0, flips = 0;
+    for (let i = 1; i < pts.length; i++) { move += Math.abs(pts[i].mean - pts[i - 1].mean); if ((pts[i - 1].mean - 50) * (pts[i].mean - 50) < 0) flips++; }
+    return { m, move, flips, settle: Math.round(pts[pts.length - 1].mean) };
+  }).filter(Boolean).sort((a, b) => b.move - a.move);
+}
+// bellwethers: early forecasts that land close to where the crowd finally settled
+function bellwethers() {
+  const players = playersInScope(); const slugs = new Set(players.map(p => p.slug));
+  const acc = {};
+  analyticsMarkets().forEach(m => {
+    const { seq, finalC, n } = marketArrivals(m); if (n < 5 || finalC === null) return;
+    const earlyCut = Math.ceil(n / 3);
+    seq.forEach(f => { if (!slugs.has(f.name) || f.rank >= earlyCut) return; (acc[f.name] = acc[f.name] || { sum: 0, n: 0 }); acc[f.name].sum += Math.abs(f.p - finalC); acc[f.name].n++; });
+  });
+  return players.map(p => { const a = acc[p.slug]; return a && a.n >= 2 ? { slug: p.slug, name: p.display_name, gap: a.sum / a.n, n: a.n } : null; }).filter(Boolean).sort((a, b) => a.gap - b.gap);
+}
+
+function svgOrderEffect() {
+  const pts = orderEffect();
+  if (pts.length < 8) return null;
+  const NB = 5; const bins = Array.from({ length: NB }, () => ({ s: 0, n: 0 }));
+  pts.forEach(p => { let i = Math.floor(p.x * NB); if (i >= NB) i = NB - 1; bins[i].s += p.d; bins[i].n++; });
+  const avg = bins.map(b => b.n ? b.s / b.n : null);
+  // slope of d on x (least squares)
+  const mx = pts.reduce((a, p) => a + p.x, 0) / pts.length, my = pts.reduce((a, p) => a + p.d, 0) / pts.length;
+  let sxy = 0, sxx = 0; pts.forEach(p => { sxy += (p.x - mx) * (p.d - my); sxx += (p.x - mx) * (p.x - mx); });
+  const slope = sxx ? sxy / sxx : 0;
+  const W = 520, H = 180, padL = 36, padB = 30, padT = 12, padR = 12;
+  const max = Math.max(...avg.filter(v => v !== null), 1);
+  const bw = (W - padL - padR) / NB;
+  const Y = v => padT + (1 - v / max) * (H - padT - padB);
+  let bars = "";
+  avg.forEach((v, i) => { if (v === null) return; const x = padL + i * bw; bars += `<rect x="${(x + 4).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${(bw - 8).toFixed(1)}" height="${(H - padB - Y(v)).toFixed(1)}" rx="2" fill="var(--accent)" fill-opacity="0.6"></rect><text x="${(x + bw / 2).toFixed(1)}" y="${(Y(v) - 4).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--faint)">${v.toFixed(0)}</text>`; });
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart-svg" xmlns="http://www.w3.org/2000/svg">
+    ${bars}
+    <line x1="${padL}" y1="${H - padB}" x2="${W - padR}" y2="${H - padB}" stroke="var(--line)"></line>
+    <text x="${padL}" y="${H - padB + 16}" font-family="var(--mono)" font-size="9" fill="var(--faint)">first to forecast</text>
+    <text x="${W - padR}" y="${H - padB + 16}" text-anchor="end" font-family="var(--mono)" font-size="9" fill="var(--faint)">last</text>
+    <text transform="translate(12 ${(H - padB + padT) / 2}) rotate(-90)" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--muted)">avg distance from final consensus</text>
+  </svg>`;
+}
+
+// ================= GROUP 6: THE QUESTION-WRITER'S MIRROR (oracle only) =================
+function questionBalance() {
+  const r = resolvedInScope(); if (!r.length) return null;
+  const yes = r.filter(m => m.outcome === "YES").length;
+  let cs = 0, cn = 0; r.forEach(m => { const a = crowdAvg(m.id); if (a !== null) { cs += a; cn++; } });
+  return { n: r.length, yes, yesRate: yes / r.length, crowdMean: cn ? cs / cn : null };
+}
+function marketDifficulty() {
+  return resolvedInScope().map(m => {
+    const ps = Object.values(forecastsFor(m.id)); if (!ps.length) return null;
+    return { m, avgB: ps.reduce((s, p) => s + brier(p, m.outcome), 0) / ps.length, consensus: crowdAvg(m.id), n: ps.length };
+  }).filter(Boolean);
+}
+function disagreementVsError() {
+  const pts = [];
+  resolvedInScope().forEach(m => {
+    const ps = Object.values(forecastsFor(m.id)); if (ps.length < 2) return;
+    const mean = ps.reduce((a, b) => a + b, 0) / ps.length;
+    const sd = Math.sqrt(ps.reduce((a, p) => a + (p - mean) * (p - mean), 0) / ps.length);
+    pts.push({ m, sd, crowdB: brier(Math.round(mean), m.outcome) });
+  });
+  if (pts.length < 3) return { pts, r: null };
+  const xs = pts.map(p => p.sd), ys = pts.map(p => p.crowdB);
+  const mx = xs.reduce((a, b) => a + b, 0) / xs.length, my = ys.reduce((a, b) => a + b, 0) / ys.length;
+  let sxy = 0, sxx = 0, syy = 0; for (let i = 0; i < xs.length; i++) { const dx = xs[i] - mx, dy = ys[i] - my; sxy += dx * dy; sxx += dx * dx; syy += dy * dy; }
+  return { pts, r: (sxx > 0 && syy > 0) ? sxy / Math.sqrt(sxx * syy) : null };
+}
+// regularized Rasch: P(correct_ij) = logistic(ability_i - difficulty_j), joint gradient ascent
+function raschModel() {
+  const markets = resolvedInScope(), players = playersInScope();
+  const slugs = players.map(p => p.slug);
+  if (markets.length < 4 || slugs.length < 4) return null;
+  const nI = slugs.length, nJ = markets.length;
+  const Y = [], mask = [];
+  slugs.forEach((s, i) => { Y[i] = []; mask[i] = []; markets.forEach((m, j) => { const fs = forecastsFor(m.id); if (s in fs) { Y[i][j] = ((m.outcome === "YES" && fs[s] >= 50) || (m.outcome === "NO" && fs[s] < 50)) ? 1 : 0; mask[i][j] = 1; } else { Y[i][j] = 0; mask[i][j] = 0; } }); });
+  let a = new Array(nI).fill(0), d = new Array(nJ).fill(0);
+  const lambda = 0.05, lr = 0.05;
+  for (let it = 0; it < 400; it++) {
+    const ga = new Array(nI).fill(0), gd = new Array(nJ).fill(0);
+    for (let i = 0; i < nI; i++) for (let j = 0; j < nJ; j++) {
+      if (!mask[i][j]) continue;
+      const p = 1 / (1 + Math.exp(-(a[i] - d[j])));
+      const r = Y[i][j] - p; ga[i] += r; gd[j] -= r;
+    }
+    for (let i = 0; i < nI; i++) a[i] += lr * (ga[i] - lambda * a[i]);
+    for (let j = 0; j < nJ; j++) d[j] += lr * (gd[j] - lambda * d[j]);
+    const md = d.reduce((s, v) => s + v, 0) / nJ; for (let j = 0; j < nJ; j++) d[j] -= md;
+  }
+  return {
+    ability: slugs.map((s, i) => ({ slug: s, name: (players.find(p => p.slug === s) || {}).display_name || s, a: a[i] })).sort((x, y) => y.a - x.a),
+    difficulty: markets.map((m, j) => ({ m, d: d[j] })).sort((x, y) => y.d - x.d)
+  };
+}
+function svgDisagErr() {
+  const { pts, r } = disagreementVsError();
+  if (pts.length < 3) return null;
+  const W = 520, H = 220, padL = 46, padB = 40, padT = 14, padR = 14;
+  const xMax = Math.max(...pts.map(p => p.sd), 1) * 1.1, yMax = Math.max(...pts.map(p => p.crowdB), 0.1) * 1.1;
+  const X = v => padL + (v / xMax) * (W - padL - padR);
+  const Y = v => padT + (1 - v / yMax) * (H - padT - padB);
+  let dots = "";
+  pts.forEach(p => { dots += `<circle cx="${X(p.sd).toFixed(1)}" cy="${Y(p.crowdB).toFixed(1)}" r="4" fill="var(--accent)" fill-opacity="0.7"><title>${esc(symbol(p.m))}</title></circle>`; });
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart-svg" xmlns="http://www.w3.org/2000/svg">
+    <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H - padB}" stroke="var(--line)"></line>
+    <line x1="${padL}" y1="${H - padB}" x2="${W - padR}" y2="${H - padB}" stroke="var(--line)"></line>
+    ${dots}
+    <text x="${W - padR}" y="${H - padB + 16}" text-anchor="end" font-family="var(--mono)" font-size="9" fill="var(--faint)">disagreement (sd of forecasts) &rarr;</text>
+    <text transform="translate(14 ${(H - padB + padT) / 2}) rotate(-90)" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--muted)">crowd error (brier)</text>
+  </svg>`;
 }
 
 // ---------- person profile (legacy modal, kept for players' own profile) ----------
@@ -1605,6 +2593,71 @@ function renderAnalytics() {
   body += `<div class="card"><div class="player-chips" id="player-buttons">${playerButtonsHtml()}</div>`
     + `<div id="player-panel" class="player-panel">${playerPanelHtml(sel)}</div></div>`;
 
+  // Forecaster camps (correlation of forecasts — no outcomes needed, shows before resolution)
+  if (playersInScope().length >= 3) {
+    body += `<h2 class="section">Forecaster camps</h2>`;
+    body += `<div class="card chart-card"><div class="player-chips" id="camp-buttons">${campButtonsHtml()}</div>`
+      + `<div id="camp-panel" class="player-panel">${campPanelHtml()}</div>`
+      + `<div class="chart-note">Built from the forecasts themselves, so it appears before any market resolves. Pick a name to see that person's correlation with everyone, or <b>All</b> for the full map with detected groupings. Hover any cell for the pair and their exact correlation.</div></div>`;
+    const cp = corrPairs();
+    if (cp.closest.length) {
+      const prow = o => `<div class="call-row" onclick="selectCampPerson('${o.a}')"><span class="call-who">${esc(displayName(o.a))} &harr; ${esc(displayName(o.b))}</span><span class="call-meta">${o.r.toFixed(2)}</span></div>`;
+      body += `<div class="card two-col">
+        <div><div class="col-h">most alike &middot; move together</div>${cp.closest.map(prow).join("")}</div>
+        <div><div class="col-h">most opposite &middot; move against</div>${cp.furthest.map(prow).join("")}</div>
+      </div>`;
+    }
+  }
+
+  // Forecaster quality across everyone (Group 1 population layer)
+  const qual = allPlayerQuality();
+  if (qual.length >= 2) {
+    body += `<h2 class="section">The skill plane</h2>`;
+    body += `<div class="card chart-card">${svgSkillPlane()}<div class="chart-note">Every player by how well calibrated they are (vertical, higher is better) and how much their forecasts discriminate YES from NO outcomes (horizontal, right is better). Top-right is the sweet spot: sharp and calibrated. Click a dot. Noisy at one season's sample size.</div></div>`;
+
+    const byRes = qual.slice().sort((a, b) => b.d.res - a.d.res);
+    const byRel = qual.slice().sort((a, b) => a.d.rel - b.d.rel);
+    const qRow = (o, val) => `<div class="call-row" onclick="jumpToPlayer('${o.slug}')"><span class="call-who">${esc(o.name)}</span><span class="call-meta">${val}</span></div>`;
+    body += `<h2 class="section">Calibration &amp; discrimination</h2>`;
+    body += `<div class="card two-col">
+      <div><div class="col-h">most discriminating &middot; resolution</div>${byRes.map(o => qRow(o, o.d.res.toFixed(3))).join("")}</div>
+      <div><div class="col-h">best calibrated &middot; reliability</div>${byRel.map(o => qRow(o, o.d.rel.toFixed(3))).join("")}</div>
+    </div>`;
+
+    const slopeVals = qual.filter(o => o.slope !== null && isFinite(o.slope)).map(o => Math.max(0, Math.min(3, o.slope)));
+    if (slopeVals.length >= 3) {
+      const med = slopeVals.slice().sort((a, b) => a - b)[Math.floor(slopeVals.length / 2)];
+      const verdict = med < 0.9 ? "the group skews <b>overconfident</b> &mdash; forecasts run too extreme for how often they come true"
+        : med > 1.1 ? "the group skews <b>underconfident</b> &mdash; forecasts hug the middle more than the outcomes justify"
+        : "the group is <b>reasonably well-scaled</b> overall";
+      body += `<h2 class="section">Is the group over- or under-confident?</h2>`;
+      body += `<div class="card chart-card">${svgSlopeDist()}<div class="chart-note">Median calibration slope ${med.toFixed(2)}: ${verdict}. Each player's slope is noisy, but the distribution across ${slopeVals.length} players is informative.</div></div>`;
+    }
+  }
+
+  // Population & typology (Group 4)
+  const pop = populationStats();
+  if (pop.filter(o => o.brier !== null).length >= 3) {
+    body += `<h2 class="section">How the group spreads</h2>`;
+    body += `<div class="card two-col">
+      <div><div class="col-h">skill &middot; average brier</div>${svgHist(pop.map(o => o.brier), { label: "lower = better" })}</div>
+      <div><div class="col-h">boldness &middot; distance from 50%</div>${svgHist(pop.map(o => o.boldness), { label: "higher = bolder", fmt: v => v.toFixed(0) })}</div>
+    </div>`;
+    body += `<h2 class="section">Bold vs accurate</h2>`;
+    body += `<div class="card chart-card">${svgBoldAccurate()}<div class="chart-note">Does conviction pay off? Each player by how bold they are (right) and how accurate (up). Top-right is bold and right; bottom-right is bold and wrong. Click a dot.</div></div>`;
+  }
+
+  // Luck vs skill (Group 2): bootstrap CIs + pairwise superiority
+  const boot = bootstrapBrier(2000);
+  if (boot) {
+    body += `<h2 class="section">How much is luck?</h2>`;
+    body += `<div class="card chart-card">${svgBrierCI(boot)}<div class="chart-note">Each player's average Brier (purple dot) with a 90% confidence interval from resampling the ${boot.M} resolved markets ${boot.B.toLocaleString()} times. Where bars overlap heavily, the ranking between those players is essentially a coin flip given this season's sample.</div></div>`;
+    body += `<h2 class="section">Who really beats whom</h2>`;
+    body += `<div class="card chart-card">${htmlPairwise(boot)}<div class="chart-note">Each cell is the probability the row player's true skill is better (lower Brier) than the column player's, estimated from the same resampling. Deep green means a reliable edge; pale cells near 50 are toss-ups. Players are ordered best-to-worst by observed Brier.</div></div>`;
+  } else if (resolvedInScope().length && playersInScope().length >= 2) {
+    body += `<h2 class="section">How much is luck?</h2><div class="card"><div class="notice">Confidence intervals need at least about five resolved markets to be meaningful.</div></div>`;
+  }
+
   // Confidence distribution (pooled)
   body += `<h2 class="section">Confidence distribution &middot; all players</h2>`;
   const allProbs = [];
@@ -1621,10 +2674,49 @@ function renderAnalytics() {
   if (stabList.length) {
     const ssel = selectedStabMarketId();
     body += `<div class="card chart-card"><div class="player-chips" id="stab-buttons">${stabButtonsHtml()}</div>`
-      + `<div id="stab-panel" class="player-panel">${svgStabilization(marketById(ssel))}</div>`
-      + `<div class="chart-note">The purple line is the running consensus as each forecast arrived; faint dots are the individual forecasts. Pick a market above; those whose forecasts came in over a longer span are listed first.</div></div>`;
+      + `<div id="stab-panel" class="player-panel">${ssel === "all" ? svgStabilizationAll() : svgStabilization(marketById(ssel))}</div>`
+      + `<div class="chart-note">Each market's running consensus as forecasts arrived. Pick a market for the detailed view with individual forecasts, or <b>All</b> to overlay every market's line (left = first forecast, right = last). Markets whose forecasts came in over a longer span are listed first.</div></div>`;
   } else {
     body += `<div class="card"><div class="notice">Consensus movement appears once markets have several forecasts placed at different times.</div></div>`;
+  }
+
+  // Dynamics over time (Group 5)
+  const herd = herdingScores();
+  if (herd.length >= 4) {
+    body += `<h2 class="section">Who herds, who goes their own way</h2>`;
+    const hRow = o => `<div class="call-row" onclick="jumpToPlayer('${o.slug}')"><span class="call-who">${esc(o.name)}</span><span class="call-meta">${o.prox.toFixed(0)} pts</span></div>`;
+    const independents = herd.slice().reverse().slice(0, 6);
+    const followers = herd.slice(0, 6);
+    body += `<div class="card two-col">
+      <div><div class="col-h">most independent &middot; far from the room</div>${independents.map(hRow).join("")}</div>
+      <div><div class="col-h">most consensus-following &middot; close to the room</div>${followers.map(hRow).join("")}</div>
+    </div><div class="card" style="margin-top:0;border:none;padding-top:0;background:none"><div class="chart-note">Average distance between a player's forecast and the consensus already visible when they locked. Low = they land near the prevailing view; high = they diverge. A footprint of anchoring, though it can't fully separate genuine agreement from being pulled.</div></div>`;
+  }
+  const oe = svgOrderEffect();
+  if (oe) {
+    const el = earlyLateBrier();
+    let elNote = "";
+    if (el.early !== null && el.late !== null) {
+      const who = el.late < el.early ? "later forecasts scored better (Brier " + el.late.toFixed(3) + " vs " + el.early.toFixed(3) + ")" : el.early < el.late ? "earlier forecasts scored better (Brier " + el.early.toFixed(3) + " vs " + el.late.toFixed(3) + ")" : "early and late forecasts scored about the same";
+      elNote = ` On resolved markets, ${who}.`;
+    }
+    body += `<h2 class="section">Do later forecasters herd?</h2>`;
+    body += `<div class="card chart-card">${oe}<div class="chart-note">If the bars shrink left-to-right, forecasters who arrive later land closer to where the consensus ends up &mdash; the signature of herding toward the running average.${elNote}</div></div>`;
+  }
+  const cd = consensusDynamics();
+  if (cd.length) {
+    const maxMove = Math.max(...cd.map(o => o.move), 1);
+    body += `<h2 class="section">Which markets swung the most</h2>`;
+    body += `<div class="card"><div class="disag-list">` + cd.slice(0, 12).map(o => {
+      const w = Math.round(o.move / maxMove * 100);
+      return `<div class="disag-row"><div class="disag-label">${esc(symbol(o.m))}</div><div class="disag-track"><div class="disag-fill" style="width:${w}%"></div></div><div class="disag-val">${o.move.toFixed(0)}</div><div class="disag-flip">${o.flips ? o.flips + " flip" + (o.flips === 1 ? "" : "s") : ""}</div></div>`;
+    }).join("") + `</div><div class="chart-note">Total movement of the running consensus before it settled (higher = the crowd changed its mind more). A "flip" is a time the consensus crossed the 50% line between YES and NO.</div></div>`;
+  }
+  const bw = bellwethers();
+  if (bw.length >= 3) {
+    body += `<h2 class="section">Bellwethers</h2>`;
+    body += `<div class="card">` + bw.slice(0, 6).map(o => `<div class="call-row" onclick="jumpToPlayer('${o.slug}')"><span class="call-who">${esc(o.name)}</span><span class="call-meta">${o.gap.toFixed(0)} pts from final</span></div>`).join("")
+      + `<div class="chart-note">Players whose early forecasts (first third to arrive) landed closest to where the crowd finally settled &mdash; the crowd tended to converge to where they already were. Suggestive of a good early read, not proof of influence.</div></div>`;
   }
 
   // Disagreement
@@ -1655,11 +2747,9 @@ function renderAnalytics() {
   body += `<h2 class="section">Best calls &amp; biggest blunders</h2>`;
   const sc = singleCalls();
   if (sc.best.length) {
-    const callRow = r => `<div class="call-row" onclick="jumpToPlayer('${r.slug}')"><span class="call-who"><b>${esc(displayName(r.slug))}</b> &middot; ${esc(symbol(r.m))}</span><span class="call-meta">${r.p}% &middot; <span class="${r.outcome==="YES"?"y":"n"}">${r.outcome}</span> &middot; ${r.b.toFixed(2)}</span></div>`;
-    body += `<div class="card two-col">
-      <div><div class="col-h">Nostradamus &middot; best calls</div>${sc.best.map(callRow).join("")}</div>
-      <div><div class="col-h">Heartbreakers &middot; worst calls</div>${sc.worst.map(callRow).join("")}</div>
-    </div>`;
+    body += `<div class="card chart-card"><div class="player-chips" id="calls-buttons">${callButtonsHtml()}</div>`
+      + `<div id="calls-panel">${callsPanelHtml()}</div>`
+      + `<div class="chart-note" id="calls-note">${callsNote()}</div></div>`;
   } else {
     body += `<div class="card"><div class="notice">Appears once markets have resolved.</div></div>`;
   }
@@ -1681,15 +2771,81 @@ function renderAnalytics() {
     body += `<div class="card"><div class="notice">Appears once markets have resolved.</div></div>`;
   }
 
-  // Per-question detail
+  // Collective intelligence (Group 3)
+  const cmp = crowdComparison();
+  if (cmp) {
+    body += `<h2 class="section">Is the crowd wise?</h2>`;
+    const verdict = cmp.crowdBrier < cmp.avgIndivBrier
+      ? `The crowd consensus (Brier ${cmp.crowdBrier.toFixed(3)}) beats the average individual (${cmp.avgIndivBrier.toFixed(3)})`
+      : `The crowd consensus (Brier ${cmp.crowdBrier.toFixed(3)}) is not beating the average individual (${cmp.avgIndivBrier.toFixed(3)})`;
+    body += `<div class="card chart-card"><div class="crowd-head" style="font-size:18px">${verdict}.</div>`
+      + `<p style="font-size:13px;color:var(--muted);margin:6px 0 4px">${cmp.beatCrowd} of ${cmp.nPlayers} individual${cmp.nPlayers === 1 ? "" : "s"} beat the crowd outright. The diversity-prediction theorem makes the gap exact: the more your forecasters disagree, the more their individual errors cancel.</p>`
+      + svgDiversityBar(cmp)
+      + `<div class="chart-note">Crowd error + diversity = average individual error (${cmp.crowdBrier.toFixed(3)} + ${cmp.diversity.toFixed(3)} = ${(cmp.crowdBrier + cmp.diversity).toFixed(3)}).</div></div>`;
+
+    const loo = leaveOneOut();
+    if (loo && loo.res.length >= 3) {
+      const helpers = loo.res.filter(o => o.help > 0).slice(0, 6);
+      const draggers = loo.res.filter(o => o.help < 0).slice(-6).reverse();
+      const looRow = o => `<div class="call-row" onclick="jumpToPlayer('${o.slug}')"><span class="call-who">${esc(o.name)}</span><span class="call-meta">${o.help >= 0 ? "+" : "&minus;"}${(Math.abs(o.help) * 1000).toFixed(1)}</span></div>`;
+      body += `<h2 class="section">Who makes the crowd smarter?</h2>`;
+      body += `<div class="card two-col">
+        <div><div class="col-h">lifts the crowd &middot; removing them hurts</div>${helpers.length ? helpers.map(looRow).join("") : `<div class="muted2" style="font-size:13px">No clear lifters.</div>`}</div>
+        <div><div class="col-h">drags the crowd &middot; removing them helps</div>${draggers.length ? draggers.map(looRow).join("") : `<div class="muted2" style="font-size:13px">No clear draggers.</div>`}</div>
+      </div><div class="card" style="margin-top:0;border:none;padding-top:0;background:none"><div class="chart-note">Change in the crowd's Brier (&times;1000) when each person is removed. Positive = the crowd got worse without them, so they were helping. At ${cmp.nPlayers} forecasters one person barely moves the average, so magnitudes are small, but the sign and ordering are meaningful.</div></div>`;
+    }
+
+    const sat = saturationCurve();
+    if (sat) {
+      body += `<h2 class="section">How many forecasters do you need?</h2>`;
+      body += `<div class="card chart-card">${svgSaturation(sat)}<div class="chart-note">Average Brier of a consensus built from a random k of your forecasters, for each k. The curve shows how fast accuracy saturates: most of the wisdom-of-crowds benefit usually arrives within the first several people, with diminishing returns after.</div></div>`;
+    }
+  }
+
+  // The question-writer's mirror (Group 6)
+  const qb = questionBalance();
+  if (qb) {
+    body += `<h2 class="section">The questions themselves</h2>`;
+    const lean = qb.yesRate > 0.6 ? "tilted toward YES" : qb.yesRate < 0.4 ? "tilted toward NO" : "fairly balanced";
+    const crowdLine = qb.crowdMean !== null ? ` The crowd's average forecast was ${qb.crowdMean.toFixed(0)}%, against a ${(qb.yesRate * 100).toFixed(0)}% YES base rate.` : "";
+    body += `<div class="card"><div class="crowd-head" style="font-size:18px">${qb.yes} of ${qb.n} resolved markets came true (${(qb.yesRate * 100).toFixed(0)}% YES) &mdash; the set is ${lean}.</div><div class="chart-note">${crowdLine} A heavy tilt means the questions, or Mateo, are more predictable in one direction than a coin flip.</div></div>`;
+
+    const md = marketDifficulty();
+    if (md.length >= 2) {
+      const byHard = md.slice().sort((a, b) => b.avgB - a.avgB);
+      const mdRow = o => `<div class="call-row"><span class="call-who">${esc(symbol(o.m))}${o.consensus !== null ? ` <span class="muted2">crowd ${o.consensus}%</span>` : ""}</span><span class="call-meta">${o.avgB.toFixed(2)} &middot; <span class="${o.m.outcome === "YES" ? "y" : "n"}">${o.m.outcome}</span></span></div>`;
+      body += `<h2 class="section">Hardest and easiest to call</h2>`;
+      body += `<div class="card two-col">
+        <div><div class="col-h">hardest &middot; highest average error</div>${byHard.slice(0, 5).map(mdRow).join("")}</div>
+        <div><div class="col-h">easiest &middot; lowest average error</div>${byHard.slice().reverse().slice(0, 5).map(mdRow).join("")}</div>
+      </div><div class="card" style="margin-top:0;border:none;padding-top:0;background:none"><div class="chart-note">Average Brier across all forecasters on each market. Hard means everyone struggled (unlike "divisive," where the room split). A market can be unanimous yet hard if the crowd was confidently wrong.</div></div>`;
+    }
+
+    const de = svgDisagErr(), der = disagreementVsError();
+    if (de) {
+      const rNote = der.r === null ? "" : der.r > 0.25 ? `Positive (r = ${der.r.toFixed(2)}): when the room splits, the crowd does tend to be more wrong.` : der.r < -0.25 ? `Negative (r = ${der.r.toFixed(2)}): disagreement actually coincides with a better crowd call here.` : `Near zero (r = ${der.r.toFixed(2)}): disagreement and crowd error look roughly unrelated.`;
+      body += `<h2 class="section">Does disagreement predict error?</h2>`;
+      body += `<div class="card chart-card">${de}<div class="chart-note">Each dot is a resolved market: how much forecasters disagreed (across) versus how wrong the consensus was (up). ${rNote}</div></div>`;
+    }
+
+    const rasch = raschModel();
+    if (rasch) {
+      const aRow = o => `<div class="call-row" onclick="jumpToPlayer('${o.slug}')"><span class="call-who">${esc(o.name)}</span><span class="call-meta">${o.a >= 0 ? "+" : ""}${o.a.toFixed(2)}</span></div>`;
+      const dRow = o => `<div class="call-row"><span class="call-who">${esc(symbol(o.m))}</span><span class="call-meta">${o.d >= 0 ? "+" : ""}${o.d.toFixed(2)}</span></div>`;
+      body += `<h2 class="section">Difficulty &amp; ability model <span class="muted2" style="font-size:12px;text-transform:none;letter-spacing:0">&mdash; experimental</span></h2>`;
+      body += `<div class="card two-col">
+        <div><div class="col-h">forecaster ability</div>${rasch.ability.slice(0, 8).map(aRow).join("")}</div>
+        <div><div class="col-h">market difficulty</div>${rasch.difficulty.slice(0, 8).map(dRow).join("")}</div>
+      </div><div class="card" style="margin-top:0;border:none;padding-top:0;background:none"><div class="chart-note">An item-response (Rasch) model fit jointly: each person's ability and each market's difficulty on one scale, from who got which side right. Unlike raw accuracy, it discounts being right on easy markets and rewards being right where stronger forecasters failed. Estimable now that there are 25 of you, but still noisy on one season &mdash; read it as suggestive.</div></div>`;
+    }
+  }
+
+  // Per-question detail (All = stacked, or one market)
   body += `<h2 class="section">Every market &middot; every forecast</h2>`;
   if (markets.length) {
-    const order = markets.slice().sort((a,b)=>{
-      const sa = effectiveStatus(a)==="resolved"?2:(effectiveStatus(a)==="closed"?1:0);
-      const sb = effectiveStatus(b)==="resolved"?2:(effectiveStatus(b)==="closed"?1:0);
-      return sa-sb;
-    });
-    body += `<div class="card chart-card">` + order.map(svgDotPlot).join("") + `<div class="chart-note">Each dot is one person's forecast (click to open them). Green = correct side, red = wrong side once resolved. Dashed line = crowd consensus.</div></div>`;
+    body += `<div class="card chart-card"><div class="player-chips" id="dot-buttons">${dotButtonsHtml()}</div>`
+      + `<div id="dot-panel" class="player-panel">${dotPanelHtml()}</div>`
+      + `<div class="chart-note">Each dot is one person's forecast (click to open them). Green = correct side, red = wrong side once resolved. Dashed line = crowd consensus. <b>All</b> stacks every market; pick one to focus.</div></div>`;
   } else {
     body += `<div class="card"><div class="notice">No markets in this scope.</div></div>`;
   }
