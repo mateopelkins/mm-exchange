@@ -437,11 +437,24 @@
         disc, greys ungrouped players, and nudges overlapping labels apart.
    3.18 Fix: the sample-data banner sat flush against the masthead's thick double
         rule; added a gap below the masthead so they no longer crowd.
+   3.19 Open/closed now follows the backend's timezone date (server_today, sent in
+        doGet) instead of the visitor's local clock, so a changed system clock no
+        longer even cosmetically flips a market open. Falls back to the local clock
+        only if the backend didn't send a date. Requires redeploying Code.gs.
+   3.20 Partial players excluded from the sample. Forecasts gain a void column;
+        once a season's markets have all closed, the backend marks every forecast
+        of any player who didn't forecast the whole season void="auto" (data kept,
+        never deleted; runs daily via installAutoVoidTrigger or on demand). Hand-set
+        void values ("yes"/"manual" to drop, "keep"/"no" to force-keep) are never
+        overwritten, and stale auto-marks self-correct. The frontend leaves voided
+        forecasts out of the leaderboard, crowd, scoring, and every analytic.
+        Requires redeploying Code.gs. Oracle/scoring-wide.
    ============================================================ */
-const VERSION = "3.18";
+const VERSION = "3.20";
 const API_URL = "https://script.google.com/macros/s/AKfycbwy_2Yv6fgQTlAGdM9UBa3gv9OPOyrOA7P2o7PDtLqHcn3BdSeOCbhrDzI8__s34Fpc/exec";
 
 let DATA = null;
+let SERVER_TODAY = null;   // the backend's date in its own timezone; preferred over the local clock for open/closed
 let ME = null;
 let viewSeasonId = null;   // which season's board is shown
 let showArchive = false;   // archive panel open instead of a board
@@ -516,6 +529,9 @@ function symbol(m) {
 function currentSeason() { return (D().seasons||[]).find(s => s.status === "current") || null; }
 function seasonById(id) { return (D().seasons||[]).find(s => s.season_id === id) || null; }
 function isVoid(m) { const v = (m.void||"").trim().toLowerCase(); return v === "yes" || v === "true" || v === "1"; }
+// A single forecast can be voided too (e.g. partial players excluded after close). "auto" = set by the
+// backend's partial-player sweep; "yes"/"manual" = set by hand. "keep"/"no" or blank means it counts.
+function isVoidForecast(f) { const v = String((f && f.void) || "").trim().toLowerCase(); return v === "yes" || v === "true" || v === "1" || v === "auto" || v === "manual" || v === "void"; }
 function seasonMarkets(id) { return D().markets.filter(m => (m.season||"") === id && !isVoid(m)); }
 function boardMarkets() {
   if (!viewSeasonId) return D().markets.filter(m => !isVoid(m)); // legacy mode: still hide voids
@@ -528,13 +544,14 @@ function effectiveStatus(m) {
   if (m.status === "resolved") return "resolved";
   if (m.status === "closed") return "closed";
   const cd = fmtDate(m.close_date);
-  if (cd && todayStr() > cd) return "closed";
+  const today = SERVER_TODAY || todayStr();   // trust the backend's timezone date; fall back to local clock only if unavailable
+  if (cd && today > cd) return "closed";
   return "open";
 }
 function forecastsFor(marketId) {
   const seen = {};
   for (const f of D().forecasts) {
-    if (f.market_id === marketId && !(f.name in seen)) seen[f.name] = Number(f.probability);
+    if (f.market_id === marketId && !isVoidForecast(f) && !(f.name in seen)) seen[f.name] = Number(f.probability);
   }
   return seen;
 }
@@ -553,7 +570,7 @@ function leaderboard(markets) {
   // Only people who actually participated this season (placed at least one forecast on its markets)
   const ids = new Set(markets.map(m => m.id));
   const played = new Set();
-  for (const f of D().forecasts) if (ids.has(f.market_id)) played.add(f.name);
+  for (const f of D().forecasts) if (ids.has(f.market_id) && !isVoidForecast(f)) played.add(f.name);
   const roster = D().people.filter(p => (p.role||"player") === "player" && played.has(p.slug));
 
   const rows = roster.map(p => ({ ...p, ...personStats(p.slug, markets) }));
@@ -661,7 +678,7 @@ function allLiveMarkets() { return D().markets.filter(m => !isVoid(m)); }
 function seasonsPlayedBy(slug) {
   const ids = new Set();
   for (const f of D().forecasts) {
-    if (f.name !== slug) continue;
+    if (f.name !== slug || isVoidForecast(f)) continue;
     const m = marketById(f.market_id);
     if (m && !isVoid(m) && (m.season||"")) ids.add(m.season);
   }
@@ -1087,7 +1104,7 @@ function playersInScope() {
   // players (by role) who forecasted at least one market in scope
   const ids = analyticsMarkets().map(m => m.id);
   const slugs = new Set();
-  for (const f of D().forecasts) if (ids.indexOf(f.market_id) >= 0) slugs.add(f.name);
+  for (const f of D().forecasts) if (ids.indexOf(f.market_id) >= 0 && !isVoidForecast(f)) slugs.add(f.name);
   return D().people.filter(p => (p.role||"player") === "player" && slugs.has(p.slug));
 }
 
@@ -1309,7 +1326,7 @@ function forecastsTimedFor(marketId) {
   // raw forecast rows for a market (first per person), with parsed time, sorted by time
   const seen = {};
   for (const f of D().forecasts) {
-    if (f.market_id !== marketId || (f.name in seen)) continue;
+    if (f.market_id !== marketId || (f.name in seen) || isVoidForecast(f)) continue;
     seen[f.name] = { name: f.name, p: Number(f.probability), t: tsToMs(f.timestamp) };
   }
   return Object.values(seen).filter(x => x.t !== null).sort((a,b)=>a.t-b.t);
@@ -1348,7 +1365,7 @@ function allTimedForecasts() {
   const ids = new Set(analyticsMarkets().map(m=>m.id));
   const out = [];
   for (const f of D().forecasts) {
-    if (!ids.has(f.market_id)) continue;
+    if (!ids.has(f.market_id) || isVoidForecast(f)) continue;
     const pr = D().people.find(x=>x.slug===f.name);
     if (!pr || (pr.role||"player")!=="player") continue;
     const t = tsToMs(f.timestamp);
@@ -3095,7 +3112,7 @@ async function saveStatus() {
 }
 
 async function init() {
-  try { const res = await fetch(API_URL); DATA = await res.json(); }
+  try { const res = await fetch(API_URL); DATA = await res.json(); SERVER_TODAY = (DATA && DATA.server_today) || null; }
   catch (err) { $app.innerHTML = `<div class="notice" style="margin-top:20px">Couldn't reach the data service. It may be waking up; refresh in a few seconds.</div>`; return; }
   // Resolve identity against the real people tab (GUEST still false, so D() === DATA here).
   const urlName = new URLSearchParams(location.search).get("name");
