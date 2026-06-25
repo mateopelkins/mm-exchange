@@ -449,8 +449,12 @@
         overwritten, and stale auto-marks self-correct. The frontend leaves voided
         forecasts out of the leaderboard, crowd, scoring, and every analytic.
         Requires redeploying Code.gs. Oracle/scoring-wide.
+   3.21 Every market / every forecast: selecting a single market now draws a
+        probability-density curve (boundary-reflected Gaussian KDE, ~20 obs) under
+        the dot plot, with a histogram underlay, the consensus line, and outcome-
+        side shading. The All (stacked) view is unchanged. Oracle only.
    ============================================================ */
-const VERSION = "3.20";
+const VERSION = "3.21";
 const API_URL = "https://script.google.com/macros/s/AKfycbwy_2Yv6fgQTlAGdM9UBa3gv9OPOyrOA7P2o7PDtLqHcn3BdSeOCbhrDzI8__s34Fpc/exec";
 
 let DATA = null;
@@ -1256,6 +1260,52 @@ function svgDotPlot(m) {
     <svg viewBox="0 0 ${W} ${H}" class="dp-svg" xmlns="http://www.w3.org/2000/svg">
       <line x1="44" y1="34" x2="${W-20}" y2="34" stroke="var(--line)"></line>
       ${consensus}${dots}${axis}
+    </svg>
+  </div>`;
+}
+
+// density (PDF) of the forecasts on one market: boundary-reflected Gaussian KDE over 0-100,
+// with a faint histogram underlay. x-axis matches svgDotPlot so it sits right under the dots.
+function svgMarketDensity(m) {
+  const vals = Object.values(forecastsFor(m.id));
+  const n = vals.length;
+  if (n < 6) return "";   // a density needs a handful of points to mean anything
+  const mean = vals.reduce((a, b) => a + b, 0) / n;
+  const sd = Math.sqrt(vals.reduce((a, v) => a + (v - mean) * (v - mean), 0) / n);
+  let h = 1.06 * (sd > 0 ? sd : 8) * Math.pow(n, -0.2);
+  h = Math.max(5, Math.min(20, h));                       // keep the curve readable on a 0-100 scale
+  const refl = []; vals.forEach(v => { refl.push(v, -v, 200 - v); });   // reflect at the 0 and 100 walls
+  const grid = []; for (let gx = 0; gx <= 100; gx++) grid.push(gx);
+  const dens = grid.map(gx => { let s = 0; refl.forEach(v => { const z = (gx - v) / h; s += Math.exp(-0.5 * z * z); }); return s / (n * h * Math.sqrt(2 * Math.PI)); });
+  const maxD = Math.max(...dens, 1e-9);
+  const NB = 10, bins = new Array(NB).fill(0);
+  vals.forEach(v => { let i = Math.floor(v / (100 / NB)); if (i >= NB) i = NB - 1; if (i < 0) i = 0; bins[i]++; });
+  const maxB = Math.max(...bins, 1);
+  const W = 560, H = 168, top = 12, bottom = 28;
+  const x = v => 44 + v / 100 * (W - 64);                  // identical mapping to svgDotPlot
+  const base = H - bottom;
+  const Yd = d => top + (1 - d / maxD) * (base - top);
+  const Yb = c => top + (1 - c / maxB) * (base - top);
+  const bw = (x(100) - x(0)) / NB;
+  let hist = ""; bins.forEach((c, i) => { if (!c) return; const bx = x(0) + i * bw; hist += `<rect x="${(bx + 1).toFixed(1)}" y="${Yb(c).toFixed(1)}" width="${(bw - 2).toFixed(1)}" height="${(base - Yb(c)).toFixed(1)}" fill="var(--accent)" fill-opacity="0.12"></rect>`; });
+  let shade = "";
+  if (m.status === "resolved" && m.outcome) {
+    const lo = m.outcome === "YES" ? 50 : 0, hi = m.outcome === "YES" ? 100 : 50;
+    shade = `<rect x="${x(lo).toFixed(1)}" y="${top}" width="${(x(hi) - x(lo)).toFixed(1)}" height="${(base - top).toFixed(1)}" fill="#6ad19a" fill-opacity="0.06"></rect>`;
+  }
+  let d = ""; grid.forEach((gx, i) => { d += (i ? "L" : "M") + x(gx).toFixed(1) + " " + Yd(dens[i]).toFixed(1) + " "; });
+  d += "L" + x(100).toFixed(1) + " " + base.toFixed(1) + " L" + x(0).toFixed(1) + " " + base.toFixed(1) + " Z";   // close to baseline for a soft fill
+  const meanX = x(mean);
+  const ticks = [0, 50, 100].map(t => `<text x="${x(t).toFixed(1)}" y="${H - 12}" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="var(--faint)">${t}</text>`).join("");
+  return `<div class="dp-block">
+    <div class="dp-q">distribution of the ${n} forecasts ${m.status === "resolved" && m.outcome ? `&middot; green = ${m.outcome} side` : ""}</div>
+    <svg viewBox="0 0 ${W} ${H}" class="dp-svg" xmlns="http://www.w3.org/2000/svg">
+      ${shade}${hist}
+      <path d="${d}" fill="var(--accent)" fill-opacity="0.14" stroke="var(--accent)" stroke-width="2"></path>
+      <line x1="${meanX.toFixed(1)}" y1="${top}" x2="${meanX.toFixed(1)}" y2="${base.toFixed(1)}" stroke="var(--ink)" stroke-width="2" stroke-dasharray="2 2"></line>
+      <line x1="${x(0)}" y1="${base}" x2="${x(100)}" y2="${base}" stroke="var(--line)"></line>
+      ${ticks}
+      <text x="${((x(0) + x(100)) / 2).toFixed(1)}" y="${H - 1}" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="var(--muted)">forecast probability &middot; consensus ${Math.round(mean)}% &middot; spread ${Math.round(sd)} pts</text>
     </svg>
   </div>`;
 }
@@ -2150,7 +2200,8 @@ function dotPanelHtml() {
   const list = dotMarketsList();
   if (!list.length) return `<div class="notice">No markets in this scope.</div>`;
   if (sel === "all") return list.map(svgDotPlot).join("");
-  return svgDotPlot(marketById(sel));
+  const m = marketById(sel);
+  return svgDotPlot(m) + svgMarketDensity(m);
 }
 function selectDotMarket(id) {
   analyticsDotMarket = id;
