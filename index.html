@@ -232,6 +232,7 @@
   table.results td, table.results th { padding: 7px 9px; text-align: left; }
   table.results th { font-family: var(--mono); color: var(--faint); font-weight: 400; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid var(--line); }
   table.results td.num, table.results th.num { text-align: right; font-family: var(--mono); }
+  table.results tr.res-gap td { text-align: center; color: var(--faint); letter-spacing: 0.2em; padding: 2px 0; }
   tr.me-row td { background: var(--accent-tint); }
   tr.me-row td:first-child { border-radius: 6px 0 0 6px; }
   tr.me-row td:last-child { border-radius: 0 6px 6px 0; }
@@ -453,8 +454,15 @@
         probability-density curve (boundary-reflected Gaussian KDE, ~20 obs) under
         the dot plot, with a histogram underlay, the consensus line, and outcome-
         side shading. The All (stacked) view is unchanged. Oracle only.
+   3.22 Resolved-market cards no longer list all ~21 forecasts inline; they show
+        the top 3 (best Brier on that market) plus the viewer's own row if outside
+        the top 3, with an "all N forecasts" button opening the full ranked list in
+        a modal, mirroring the leaderboard.
+   3.23 Player board no longer shows an empty "Open markets" section or a
+        "No open markets" notice once everything has closed; the Open section
+        renders only when markets are actually open (matching the oracle view).
    ============================================================ */
-const VERSION = "3.21";
+const VERSION = "3.23";
 const API_URL = "https://script.google.com/macros/s/AKfycbwy_2Yv6fgQTlAGdM9UBa3gv9OPOyrOA7P2o7PDtLqHcn3BdSeOCbhrDzI8__s34Fpc/exec";
 
 let DATA = null;
@@ -831,10 +839,10 @@ function render() {
     if (resolved.length) main += section("Resolved") + resolved.map(resolvedCard).join("");
     if (!board.length) main += `<div class="notice">This season has no recorded markets.</div>`;
   } else {
-    main += section("Open markets");
-    main += open.length ? open.map(marketCard).join("") : `<div class="notice">No open markets. The Oracle is deliberating.</div>`;
+    if (open.length) main += section("Open markets") + open.map(marketCard).join("");
     if (closed.length) main += section("Closed &middot; awaiting resolution") + closed.map(m => positionCard(m, "closed")).join("");
     if (resolved.length) main += section("Resolved") + resolved.map(resolvedCard).join("");
+    if (!board.length) main += `<div class="notice">No markets in this season yet.</div>`;
   }
 
   // ----- rail -----
@@ -1053,16 +1061,38 @@ function positionCard(m, chip) {
     ${consensusHtml(m.id, false, mineP)}</div>`;
 }
 
+function marketResultRow(r, rank) {
+  return `<tr class="${r.slug===ME?"me-row":""}"><td class="num">${rank}</td><td>${esc(displayName(r.slug))}</td><td class="num">${r.p}%</td><td class="num">${r.b.toFixed(2)}</td></tr>`;
+}
 function resolvedCard(m) {
   const fs = forecastsFor(m.id);
   const rows = Object.entries(fs).map(([slug,p]) => ({ slug, p, b: brier(p, m.outcome) })).sort((a,b) => a.b - b.b);
+  const head = `<tr><th class="num">#</th><th>forecaster</th><th class="num">forecast</th><th class="num">brier</th></tr>`;
+  let body = rows.slice(0, 3).map((r, i) => marketResultRow(r, i + 1)).join("");
+  const myIdx = rows.findIndex(r => r.slug === ME);
+  if (myIdx >= 3) body += `<tr class="res-gap"><td colspan="4">&middot;&middot;&middot;</td></tr>` + marketResultRow(rows[myIdx], myIdx + 1);
+  const moreBtn = rows.length > 3 ? `<button class="btn-ghost lb-full-btn" onclick="openMarketResults('${m.id}')">all ${rows.length} forecasts</button>` : "";
   return `<div class="card"><div class="symline">${esc(symbol(m))}</div>
     <div class="top"><div class="q">${esc(m.question)}</div><span class="chip ${m.outcome==="YES"?"yes":"no"}">resolved ${esc(m.outcome)}</span></div>
     <div class="criteria">${esc(m.criteria)}</div>
-    <table class="results"><tr><th>forecaster</th><th class="num">forecast</th><th class="num">brier</th></tr>
-      ${rows.map(r => `<tr class="${r.slug===ME?"me-row":""}"><td>${esc(displayName(r.slug))}</td><td class="num">${r.p}%</td><td class="num">${r.b.toFixed(2)}</td></tr>`).join("")}
-    </table></div>`;
+    <table class="results">${head}${body}</table>${moreBtn}</div>`;
 }
+function openMarketResults(marketId) {
+  const m = marketById(marketId);
+  const fs = forecastsFor(marketId);
+  const rows = Object.entries(fs).map(([slug,p]) => ({ slug, p, b: brier(p, m.outcome) })).sort((a,b) => a.b - b.b);
+  const head = `<tr><th class="num">#</th><th>forecaster</th><th class="num">forecast</th><th class="num">brier</th></tr>`;
+  document.getElementById("modal-root").innerHTML = `
+    <div class="modal-bg" onclick="if(event.target===this)closeMarketResults()">
+      <div class="modal" role="dialog" aria-label="market results">
+        <h3>${esc(symbol(m))}</h3>
+        <div class="m-sub">${esc(m.question)} &middot; <span class="${m.outcome==="YES"?"up":"down"}">resolved ${esc(m.outcome)}</span></div>
+        <div class="lb-modal"><table class="results">${head}${rows.map((r,i)=>marketResultRow(r,i+1)).join("")}</table></div>
+        <button class="modal-close" onclick="closeMarketResults()">Close</button>
+      </div>
+    </div>`;
+}
+function closeMarketResults() { document.getElementById("modal-root").innerHTML = ""; }
 
 function renderPicker() {
   $app.innerHTML = `<div class="notice" style="margin-top:20px">
