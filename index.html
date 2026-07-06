@@ -464,8 +464,7 @@
         "No open markets" notice once everything has closed; the Open section
         renders only when markets are actually open (matching the oracle view).
    3.24 Resolved-market cards (and the all-forecasts modal) show the crowd
-        consensus again: average forecast, the crowd's own Brier, and whether
-        the crowd called it, was wrong, or sat on the fence.
+        consensus again: average forecast and the crowd's Brier.
    ============================================================ */
 const VERSION = "3.24";
 const API_URL = "https://script.google.com/macros/s/AKfycbwy_2Yv6fgQTlAGdM9UBa3gv9OPOyrOA7P2o7PDtLqHcn3BdSeOCbhrDzI8__s34Fpc/exec";
@@ -1073,9 +1072,7 @@ function resolvedConsensusHtml(m, rows) {
   if (!rows.length) return "";
   const avg = rows.reduce((a, r) => a + r.p, 0) / rows.length;
   const crowdB = brier(avg, m.outcome);
-  const sided = (m.outcome === "YES") === (avg >= 50);
-  const verdict = Math.abs(avg - 50) < 1 ? "the crowd sat on the fence" : (sided ? "the crowd called it" : "the crowd was wrong");
-  return `<div class="res-consensus">crowd consensus <b>${Math.round(avg)}%</b> &middot; brier ${crowdB.toFixed(2)} &middot; ${verdict}</div>`;
+  return `<div class="res-consensus">crowd consensus <b>${Math.round(avg)}%</b> &middot; brier ${crowdB.toFixed(2)}</div>`;
 }
 function resolvedCard(m) {
   const fs = forecastsFor(m.id);
