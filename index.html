@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>MateoMarkets</title>
+<!-- favicon: the price path, crash and recover. charcoal tile, accent line. -->
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="%231d1f23"/><polyline points="3,23 8,12 15,27 22,6 28,17" fill="none" stroke="%239a8cf5" stroke-width="3.1" stroke-linecap="round" stroke-linejoin="round"/></svg>'>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Spline+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -479,8 +481,12 @@
         top-3 position is shown rather than cut at three rows, co-leaders all get
         the first-place styling, and awards name every co-winner instead of the
         first row encountered.
+   3.27 Favicon: the site finally has a tab mark instead of the browser's
+        default globe. An inline SVG data URI (no image file in the repo):
+        a five-point price path on a charcoal tile in the accent purple,
+        rising, crashing through its own opening, recovering, fading.
    ============================================================ */
-const VERSION = "3.26";
+const VERSION = "3.27";
 const API_URL = "https://script.google.com/macros/s/AKfycbwy_2Yv6fgQTlAGdM9UBa3gv9OPOyrOA7P2o7PDtLqHcn3BdSeOCbhrDzI8__s34Fpc/exec";
 
 let DATA = null;
