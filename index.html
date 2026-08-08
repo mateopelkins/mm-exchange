@@ -291,6 +291,24 @@
   .lb-gap { text-align: center; color: var(--faint); font-family: var(--mono); font-size: 12px; letter-spacing: 0.2em; padding: 2px 0; }
   .lb-full-btn { width: 100%; margin-top: 10px; }
   .lb-modal { display: flex; flex-direction: column; }
+  /* projected settlement: per-market outcome toggles */
+  .proj-toggles { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 4px 12px; margin: 4px 0 10px; }
+  .pt-row { display: flex; align-items: center; gap: 6px; padding: 3px 0; }
+  .pt-tk { font-family: var(--mono); font-size: 11px; color: var(--ink); min-width: 44px; }
+  .pt-c { font-family: var(--mono); font-size: 10px; color: var(--faint); min-width: 56px; }
+  .pt-b { font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; padding: 2px 7px; cursor: pointer;
+          background: transparent; color: var(--faint); border: 1px solid var(--line-strong); border-radius: 4px; }
+  .pt-b:hover { color: var(--ink); border-color: var(--muted); }
+  .pt-b.on { background: var(--accent-tint); color: var(--accent); border-color: var(--accent); }
+  .pt-row.pt-set .pt-b.on { background: var(--accent); color: #17181c; border-color: var(--accent); }
+  .pt-x { min-width: 16px; }
+  .pt-clear { background: none; border: none; color: var(--faint); cursor: pointer; font-size: 13px; padding: 0 2px; }
+  .pt-clear:hover { color: var(--ink); }
+  .pt-count { font-family: var(--mono); font-size: 10.5px; color: var(--muted); padding: 6px 0 2px;
+              border-top: 1px solid var(--line); }
+  .pt-count b { color: var(--accent); font-weight: 500; }
+  .pt-reset { background: none; border: none; color: var(--accent); cursor: pointer; font-family: var(--mono);
+              font-size: 10.5px; text-decoration: underline; padding: 0 0 0 4px; }
   .lb-modal .lb-row:last-child { border-bottom: none; }
 
   .prize { padding: 4px 16px; }
@@ -485,8 +503,16 @@
         default globe. An inline SVG data URI (no image file in the repo):
         a five-point price path on a charcoal tile in the accent purple,
         rising, crashing through its own opening, recovering, fading.
+   3.28 Projected settlement is now a scenario tool. Every unresolved market
+        still defaults to the crowd's lean, but each one carries YES/NO
+        toggles: flip any of them and the standings, projected Briers and
+        movement arrows recompute against your own read. Markets you set are
+        marked, individually revertible, and resettable in one click; the
+        counter separates "following the market" from "set by you". Overrides
+        live in the browser only and never touch the sheet or the live table.
+        The button now appears only when something is actually projectable.
    ============================================================ */
-const VERSION = "3.27";
+const VERSION = "3.28";
 const API_URL = "https://script.google.com/macros/s/AKfycbwy_2Yv6fgQTlAGdM9UBa3gv9OPOyrOA7P2o7PDtLqHcn3BdSeOCbhrDzI8__s34Fpc/exec";
 
 let DATA = null;
@@ -986,7 +1012,8 @@ function profileCard(me, open, lb, archived, role) {
   </div>`;
 }
 
-// ---------- projected settlement (oracle): if every open market resolves with the crowd ----------
+// ---------- projected settlement (oracle): consensus by default, overridable ----------
+let projOverrides = {};        // market_id -> "YES" | "NO"; absent = follow the market
 function marketConsensus(mid) {
   const vals = Object.values(forecastsFor(mid));
   if (!vals.length) return null;
@@ -998,7 +1025,9 @@ function projectionData(markets) {
     if (m.status === "resolved" && m.outcome) continue;
     const c = marketConsensus(m.id);
     if (c === null) { skipped.push(m); continue; }
-    assumed.push({ m, outcome: c >= 50 ? "YES" : "NO", consensus: c });
+    const mkt = c >= 50 ? "YES" : "NO";
+    const ov = projOverrides[m.id];
+    assumed.push({ m, outcome: ov || mkt, consensus: c, market: mkt, overridden: !!ov && ov !== mkt, set: !!ov });
   }
   return { assumed, skipped };
 }
@@ -1026,7 +1055,21 @@ function projectedLeaderboard() {
   rankRows(rows, "avg");
   return { rows, assumed, skipped };
 }
-function openProjection() {
+function setProjOutcome(mid, outcome) {
+  projOverrides[mid] = outcome;
+  openProjection(true);
+}
+function clearProjOutcome(mid) {
+  delete projOverrides[mid];
+  openProjection(true);
+}
+function resetProjOutcomes() {
+  projOverrides = {};
+  openProjection(true);
+}
+function openProjection(keepScroll) {
+  let scroll = 0;
+  if (keepScroll) { const el = document.getElementById("proj-scroll"); if (el) scroll = el.scrollTop || 0; }
   const proj = projectedLeaderboard();
   const cur = leaderboard(boardMarkets()).rows;
   const curRank = {}; cur.forEach(r => curRank[r.slug] = r.rank);
@@ -1039,19 +1082,40 @@ function openProjection() {
     const fav = now === 1 ? ` <span class="chip yes">projected ${proj.rows.filter(x => x.rank === 1).length > 1 ? "co-champion" : "champion"}</span>` : "";
     return `<tr class="${r.slug===ME?"me-row":""}"><td class="num">${now}</td><td>${esc(r.display_name)}${fav}</td><td class="num">${r.avg !== null ? r.avg.toFixed(3) : "&mdash;"}</td><td class="num">${r.n}</td><td class="num">${move}</td></tr>`;
   }).join("");
-  const assumeNote = proj.assumed.map(a => `${esc(a.m.ticker || a.m.id)} &rarr; ${a.outcome} (${Math.round(a.consensus)}%)`).join(" &middot; ");
-  const skipNote = proj.skipped.length ? `<div class="m-sub">excluded (no forecasts): ${proj.skipped.map(m => esc(m.ticker || m.id)).join(", ")}</div>` : "";
+
+  const toggles = proj.assumed.map(a => {
+    const on = o => a.outcome === o ? " on" : "";
+    return `<div class="pt-row${a.set ? " pt-set" : ""}">
+      <span class="pt-tk">${esc(a.m.ticker || a.m.id)}</span>
+      <span class="pt-c">mkt ${Math.round(a.consensus)}%</span>
+      <button class="pt-b${on("YES")}" onclick="setProjOutcome('${a.m.id}','YES')">YES</button>
+      <button class="pt-b${on("NO")}" onclick="setProjOutcome('${a.m.id}','NO')">NO</button>
+      <span class="pt-x">${a.set ? `<button class="pt-clear" title="follow the market again" onclick="clearProjOutcome('${a.m.id}')">&times;</button>` : ""}</span>
+    </div>`;
+  }).join("");
+
+  const setCount = proj.assumed.filter(a => a.set).length;
+  const countLine = proj.assumed.length
+    ? `${proj.assumed.length - setCount} following the market${setCount ? ` &middot; <b>${setCount} set by you</b>` : ""}`
+    : "nothing left to project";
+  const resetBtn = setCount ? ` <button class="pt-reset" onclick="resetProjOutcomes()">reset all to market</button>` : "";
+  const skipNote = proj.skipped.length ? `<div class="m-sub">excluded, no forecasts to score: ${proj.skipped.map(m => esc(m.ticker || m.id)).join(", ")}</div>` : "";
+
   document.getElementById("modal-root").innerHTML = `
     <div class="modal-bg" onclick="if(event.target===this)closeProjection()">
       <div class="modal" role="dialog" aria-label="projected settlement">
         <h3>Projected settlement</h3>
-        <div class="m-sub">if every open market resolves the way the crowd leans (consensus &ge; 50 &rarr; YES)</div>
-        <div class="lb-modal"><table class="results"><tr><th class="num">#</th><th>forecaster</th><th class="num">proj. brier</th><th class="num">mkts</th><th class="num">move</th></tr>${rowsHtml}</table></div>
-        <div class="m-sub">assumes: ${assumeNote || "&mdash;"}</div>
-        ${skipNote}
+        <div class="m-sub">Every unresolved market starts where the crowd leans. Flip any of them to see the standings under your own read.</div>
+        <div class="lb-modal" id="proj-scroll">
+          <div class="proj-toggles">${toggles || `<div class="m-sub">nothing left to project</div>`}</div>
+          <div class="pt-count">${countLine}${resetBtn}</div>
+          <table class="results"><tr><th class="num">#</th><th>forecaster</th><th class="num">proj. brier</th><th class="num">mkts</th><th class="num">move</th></tr>${rowsHtml}</table>
+          ${skipNote}
+        </div>
         <button class="modal-close" onclick="closeProjection()">Close</button>
       </div>
     </div>`;
+  if (keepScroll) { const el = document.getElementById("proj-scroll"); if (el) el.scrollTop = scroll; }
 }
 function closeProjection() { document.getElementById("modal-root").innerHTML = ""; }
 
@@ -1072,8 +1136,9 @@ function leaderboardCard(lb, archived) {
   const moreBtn = lb.rows.length > 3
     ? `<button class="btn-ghost lb-full-btn" onclick="openLeaderboard()">full leaderboard</button>`
     : "";
-  const unfinished = boardMarkets().some(m => !(m.status === "resolved" && m.outcome));
-  const projBtn = (!archived && myRole() === "oracle" && unfinished)
+  const projectable = !archived && myRole() === "oracle" &&
+    boardMarkets().some(m => !(m.status === "resolved" && m.outcome) && marketConsensus(m.id) !== null);
+  const projBtn = projectable
     ? `<button class="btn-ghost lb-full-btn" onclick="openProjection()">projected settlement</button>`
     : "";
 
