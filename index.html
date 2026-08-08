@@ -471,8 +471,16 @@
         YES), with projected Brier, movement arrows vs the current table, a
         projected-champion tag, the list of assumed outcomes, and any
         no-forecast markets excluded. Oracle only; live table untouched.
+   3.26 Ties are now real. Equal scores share a leaderboard position and the next
+        position skips the numbers they consumed (1, 1, 3), decided on the full
+        stored value rather than the rounded one on screen. Applies to the
+        leaderboard, the full-leaderboard modal, per-market results (where equal
+        forecasts always tie), and the projected settlement. Every holder of a
+        top-3 position is shown rather than cut at three rows, co-leaders all get
+        the first-place styling, and awards name every co-winner instead of the
+        first row encountered.
    ============================================================ */
-const VERSION = "3.25";
+const VERSION = "3.26";
 const API_URL = "https://script.google.com/macros/s/AKfycbwy_2Yv6fgQTlAGdM9UBa3gv9OPOyrOA7P2o7PDtLqHcn3BdSeOCbhrDzI8__s34Fpc/exec";
 
 let DATA = null;
@@ -588,6 +596,27 @@ function personStats(slug, markets) {
   }
   return { avg: n ? sum/n : null, n };
 }
+// Competition ranking (1, 1, 3): equal scores share a position and the next
+// position skips the numbers they consumed. Ties are decided on the FULL value,
+// never the rounded value shown on screen. EPS only absorbs floating-point dust:
+// Brier from integer forecasts is granular to ~1e-4/n, far above 1e-9.
+function rankRows(rows, key) {
+  const EPS = 1e-9;
+  let rank = 1;
+  rows.forEach((r, i) => {
+    if (i > 0) {
+      const prev = rows[i - 1], a = r[key], b = prev[key];
+      const same = (a === null && b === null) || (a !== null && b !== null && Math.abs(a - b) < EPS);
+      if (!same) rank = i + 1;
+    }
+    r.rank = rank;
+  });
+  const counts = {};
+  rows.forEach(r => { counts[r.rank] = (counts[r.rank] || 0) + 1; });
+  rows.forEach(r => { r.tied = counts[r.rank] > 1; });
+  return rows;
+}
+
 function leaderboard(markets) {
   // Only people who actually participated this season (placed at least one forecast on its markets)
   const ids = new Set(markets.map(m => m.id));
@@ -597,6 +626,7 @@ function leaderboard(markets) {
 
   const rows = roster.map(p => ({ ...p, ...personStats(p.slug, markets) }));
   rows.sort((a,b) => (a.avg === null) - (b.avg === null) || a.avg - b.avg);
+  rankRows(rows, "avg");
   const aw = computeAwards(markets, rows, roster);
   return { rows, badges: aw.badges, awards: aw.awards, byPerson: aw.byPerson, awardsByPerson: aw.byPerson };
 }
@@ -621,7 +651,7 @@ function computeAwards(markets, rows, roster) {
   const resolved = markets.filter(m => m.status === "resolved" && m.outcome);
 
   // best calibrated: leaderboard #1 (lowest avg brier), needs at least one resolved score
-  if (rows.length && rows[0].avg !== null) winners.calibrated = rows[0].slug;
+  if (rows.length && rows[0].avg !== null) winners.calibrated = rows.filter(r => r.rank === 1).map(r => r.slug);
 
   // per-person aggregates in a single pass
   let conv = null, contra = null, whisp = null, fence = null;
@@ -637,17 +667,28 @@ function computeAwards(markets, rows, roster) {
       const avg = crowdAvg(m.id);
       if (avg !== null) { wSum += Math.abs(mine - avg); wN++; }
     }
+    const better = (cand, cur, wantHigh) => {
+      if (!cur) return "new";
+      if (Math.abs(cand - cur.v) < 1e-9) return "tie";
+      return (wantHigh ? cand > cur.v : cand < cur.v) ? "new" : "no";
+    };
+    const put = (cur, cand, wantHigh) => {
+      const verdict = better(cand, cur, wantHigh);
+      if (verdict === "new") return { slugs: [p.slug], v: cand };
+      if (verdict === "tie") { cur.slugs.push(p.slug); return cur; }
+      return cur;
+    };
     if (cN) {
-      if (!conv  || cSum/cN > conv.v)  conv  = { slug: p.slug, v: cSum/cN };
-      if (!fence || cSum/cN < fence.v) fence = { slug: p.slug, v: cSum/cN };
+      conv  = put(conv,  cSum/cN, true);
+      fence = put(fence, cSum/cN, false);
     }
-    if (dN && (!contra || dSum/dN > contra.v)) contra = { slug: p.slug, v: dSum/dN };
-    if (wN && (!whisp  || wSum/wN < whisp.v))  whisp  = { slug: p.slug, v: wSum/wN };
+    if (dN) contra = put(contra, dSum/dN, true);
+    if (wN) whisp  = put(whisp,  wSum/wN, false);
   }
-  if (contra) winners.contrarian = contra.slug;
-  if (conv)   winners.conviction = conv.slug;
-  if (whisp)  winners.whisperer  = whisp.slug;
-  if (fence)  winners.fence      = fence.slug;
+  if (contra) winners.contrarian = contra.slugs;
+  if (conv)   winners.conviction = conv.slugs;
+  if (whisp)  winners.whisperer  = whisp.slugs;
+  if (fence)  winners.fence      = fence.slugs;
 
   // best upset: among resolved markets the crowd got wrong, the most confident correct call
   let upset = null;
@@ -664,24 +705,27 @@ function computeAwards(markets, rows, roster) {
       const right = (m.outcome === "YES" && p >= 50) || (m.outcome === "NO" && p < 50);
       if (!right) continue;
       const conviction = Math.abs(p - 50);
-      if (!upset || conviction > upset.v) upset = { slug, v: conviction, market: m };
+      if (!upset || conviction > upset.v + 1e-9) upset = { slugs: [slug], v: conviction, market: m };
+      else if (Math.abs(conviction - upset.v) < 1e-9 && upset.slugs.indexOf(slug) < 0) upset.slugs.push(slug);
     }
   }
-  if (upset) winners.upset = upset.slug;
+  if (upset) winners.upset = upset.slugs;
 
   // build per-person award lists (all awards a person won), ordered by priority
   const byPerson = {};
   AWARD_ORDER.forEach(key => {
-    const slug = winners[key];
-    if (!slug) return;
-    (byPerson[slug] = byPerson[slug] || []).push(key);
+    const w = winners[key];
+    if (!w || !w.length) return;
+    w.forEach(slug => { (byPerson[slug] = byPerson[slug] || []).push(key); });
   });
 
   // single badge per leaderboard row = highest-priority award that person holds
   const badges = {};
   for (const slug in byPerson) badges[slug] = AWARD_LABEL[byPerson[slug][0]];
 
-  return { winners, badges, byPerson, awards: AWARD_DEFS.filter(a => winners[a.key]).map(a => ({ ...a, slug: winners[a.key] })) };
+  return { winners, badges, byPerson,
+    awards: AWARD_DEFS.filter(a => winners[a.key] && winners[a.key].length)
+      .map(a => ({ ...a, slugs: winners[a.key], slug: winners[a.key][0] })) };
 }
 function initials(name) { return name.trim().split(/\s+/).map(w => w[0]).join("").slice(0,2).toUpperCase(); }
 function displayName(slug) { const p = D().people.find(x => x.slug === slug); return p ? p.display_name : slug; }
@@ -973,20 +1017,21 @@ function projectedLeaderboard() {
     return { ...p, avg: n ? sum / n : null, n };
   });
   rows.sort((a, b) => (a.avg === null) - (b.avg === null) || a.avg - b.avg);
+  rankRows(rows, "avg");
   return { rows, assumed, skipped };
 }
 function openProjection() {
   const proj = projectedLeaderboard();
   const cur = leaderboard(boardMarkets()).rows;
-  const curRank = {}; cur.forEach((r, i) => curRank[r.slug] = i + 1);
-  const rowsHtml = proj.rows.map((r, i) => {
-    const was = curRank[r.slug];
+  const curRank = {}; cur.forEach(r => curRank[r.slug] = r.rank);
+  const rowsHtml = proj.rows.map(r => {
+    const was = curRank[r.slug], now = r.rank;
     let move = `<span style="color:var(--faint)">&ndash;</span>`;
-    if (was && was !== i + 1) move = was > i + 1
-      ? `<span class="up">&#9650;${was - (i + 1)}</span>`
-      : `<span class="down">&#9660;${(i + 1) - was}</span>`;
-    const fav = i === 0 ? ` <span class="chip yes">projected champion</span>` : "";
-    return `<tr class="${r.slug===ME?"me-row":""}"><td class="num">${i + 1}</td><td>${esc(r.display_name)}${fav}</td><td class="num">${r.avg !== null ? r.avg.toFixed(3) : "&mdash;"}</td><td class="num">${r.n}</td><td class="num">${move}</td></tr>`;
+    if (was && was !== now) move = was > now
+      ? `<span class="up">&#9650;${was - now}</span>`
+      : `<span class="down">&#9660;${now - was}</span>`;
+    const fav = now === 1 ? ` <span class="chip yes">projected ${proj.rows.filter(x => x.rank === 1).length > 1 ? "co-champion" : "champion"}</span>` : "";
+    return `<tr class="${r.slug===ME?"me-row":""}"><td class="num">${now}</td><td>${esc(r.display_name)}${fav}</td><td class="num">${r.avg !== null ? r.avg.toFixed(3) : "&mdash;"}</td><td class="num">${r.n}</td><td class="num">${move}</td></tr>`;
   }).join("");
   const assumeNote = proj.assumed.map(a => `${esc(a.m.ticker || a.m.id)} &rarr; ${a.outcome} (${Math.round(a.consensus)}%)`).join(" &middot; ");
   const skipNote = proj.skipped.length ? `<div class="m-sub">excluded (no forecasts): ${proj.skipped.map(m => esc(m.ticker || m.id)).join(", ")}</div>` : "";
@@ -1008,13 +1053,14 @@ function leaderboardCard(lb, archived) {
   const title = archived ? "final standings" : "leaderboard";
   if (!lb.rows.length) return `<div class="rail-h">${title}</div><div class="card"><div class="lb-empty">no forecasts yet</div></div>`;
 
-  const top = lb.rows.slice(0, 3);
-  let rowsHtml = top.map((r, i) => lbRow(r, i + 1, lb.badges)).join("");
+  // everyone holding a top-3 position, so a shared position never cuts one of its holders
+  const top = lb.rows.filter(r => r.rank <= 3);
+  let rowsHtml = top.map(r => lbRow(r, r.rank, lb.badges)).join("");
 
   // If the viewer isn't in the top 3, append their own row below a divider.
-  const myIndex = lb.rows.findIndex(r => r.slug === ME);
-  if (myIndex >= 3) {
-    rowsHtml += `<div class="lb-gap">&middot;&middot;&middot;</div>` + lbRow(lb.rows[myIndex], myIndex + 1, lb.badges);
+  const meRow = lb.rows.find(r => r.slug === ME);
+  if (meRow && meRow.rank > 3) {
+    rowsHtml += `<div class="lb-gap">&middot;&middot;&middot;</div>` + lbRow(meRow, meRow.rank, lb.badges);
   }
 
   const moreBtn = lb.rows.length > 3
@@ -1034,7 +1080,7 @@ function openLeaderboard() {
   const archived = isArchivedView();
   const title = archived ? "Final standings" : "Leaderboard";
   const sub = archived ? esc((seasonById(viewSeasonId)||{}).label || "") : "this season";
-  const rows = lb.rows.map((r, i) => lbRow(r, i + 1, lb.badges)).join("");
+  const rows = lb.rows.map(r => lbRow(r, r.rank, lb.badges)).join("");
   document.getElementById("modal-root").innerHTML = `
     <div class="modal-bg" onclick="if(event.target===this)closeLeaderboard()">
       <div class="modal" role="dialog" aria-label="${title}">
@@ -1154,11 +1200,11 @@ function resolvedConsensusHtml(m, rows) {
 }
 function resolvedCard(m) {
   const fs = forecastsFor(m.id);
-  const rows = Object.entries(fs).map(([slug,p]) => ({ slug, p, b: brier(p, m.outcome) })).sort((a,b) => a.b - b.b);
+  const rows = rankRows(Object.entries(fs).map(([slug,p]) => ({ slug, p, b: brier(p, m.outcome) })).sort((a,b) => a.b - b.b), "b");
   const head = `<tr><th class="num">#</th><th>forecaster</th><th class="num">forecast</th><th class="num">brier</th></tr>`;
-  let body = rows.slice(0, 3).map((r, i) => marketResultRow(r, i + 1)).join("");
-  const myIdx = rows.findIndex(r => r.slug === ME);
-  if (myIdx >= 3) body += `<tr class="res-gap"><td colspan="4">&middot;&middot;&middot;</td></tr>` + marketResultRow(rows[myIdx], myIdx + 1);
+  let body = rows.filter(r => r.rank <= 3).map(r => marketResultRow(r, r.rank)).join("");
+  const meRow = rows.find(r => r.slug === ME);
+  if (meRow && meRow.rank > 3) body += `<tr class="res-gap"><td colspan="4">&middot;&middot;&middot;</td></tr>` + marketResultRow(meRow, meRow.rank);
   const moreBtn = rows.length > 3 ? `<button class="btn-ghost lb-full-btn" onclick="openMarketResults('${m.id}')">all ${rows.length} forecasts</button>` : "";
   return `<div class="card"><div class="symline">${esc(symbol(m))}</div>
     <div class="top"><div class="q">${esc(m.question)}</div><span class="chip ${m.outcome==="YES"?"yes":"no"}">resolved ${esc(m.outcome)}</span></div>
@@ -1169,7 +1215,7 @@ function resolvedCard(m) {
 function openMarketResults(marketId) {
   const m = marketById(marketId);
   const fs = forecastsFor(marketId);
-  const rows = Object.entries(fs).map(([slug,p]) => ({ slug, p, b: brier(p, m.outcome) })).sort((a,b) => a.b - b.b);
+  const rows = rankRows(Object.entries(fs).map(([slug,p]) => ({ slug, p, b: brier(p, m.outcome) })).sort((a,b) => a.b - b.b), "b");
   const head = `<tr><th class="num">#</th><th>forecaster</th><th class="num">forecast</th><th class="num">brier</th></tr>`;
   document.getElementById("modal-root").innerHTML = `
     <div class="modal-bg" onclick="if(event.target===this)closeMarketResults()">
@@ -1177,7 +1223,7 @@ function openMarketResults(marketId) {
         <h3>${esc(symbol(m))}</h3>
         <div class="m-sub">${esc(m.question)} &middot; <span class="${m.outcome==="YES"?"up":"down"}">resolved ${esc(m.outcome)}</span></div>
         ${resolvedConsensusHtml(m, rows)}
-        <div class="lb-modal"><table class="results">${head}${rows.map((r,i)=>marketResultRow(r,i+1)).join("")}</table></div>
+        <div class="lb-modal"><table class="results">${head}${rows.map(r=>marketResultRow(r,r.rank)).join("")}</table></div>
         <button class="modal-close" onclick="closeMarketResults()">Close</button>
       </div>
     </div>`;
@@ -2879,7 +2925,7 @@ function renderAnalytics() {
     body += `<div class="card"><div class="awards-grid">` + lb.awards.map(a =>
       `<div class="award-card" onclick="jumpToPlayer('${a.slug}')">
         <div class="aw-title">${esc(a.label)}</div>
-        <div class="aw-winner">${esc(displayName(a.slug))}</div>
+        <div class="aw-winner">${a.slugs.map(s => esc(displayName(s))).join(" &amp; ")}</div>
         <div class="aw-blurb">${esc(a.blurb)}</div>
       </div>`).join("") + `</div></div>`;
   } else {
